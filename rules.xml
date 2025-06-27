@@ -1,0 +1,65 @@
+<!-- Custom High Priority Security Rules for RCE and Critical Attacks -->
+<group name="custom_high_priority">
+
+  <!-- Remote Code Execution Detection Rules -->
+  
+  <!-- Rule 100001: Web-based RCE attempts via command injection -->
+  <rule id="100001" level="12">
+    <decoded_as>web-accesslog</decoded_as>
+    <match type="pcre2">(?i)(cmd=|command=|exec=|system=|shell=|bash=|sh=|powershell=|cmd\.exe)</match>
+    <description>Potential remote code execution attempt via web parameter injection</description>
+    <group>rce,web_attack,command_injection</group>
+  </rule>
+
+
+  <!-- Rule 100002: Common RCE payloads in web logs -->
+  <rule id="100002" level="12">
+    <decoded_as>web-accesslog</decoded_as>
+    <match type="pcre2">(?i)(%60|`|\$\(|\${|eval\(|base64_decode|exec\(|system\(|passthru\(|shell_exec\()</match>
+    <description>Suspicious code execution patterns detected in web request</description>
+    <group>rce,web_attack,payload_injection</group>
+  </rule>
+  
+    <!-- Rule 100005: SQL injection with command execution -->
+  <rule id="100005" level="12">
+    <decoded_as>web-accesslog</decoded_as>
+    <match type="pcre2">(?i)(xp_cmdshell|sp_execute_external_script|OPENROWSET|BULK|INTO\s+OUTFILE|LOAD_FILE)</match>
+    <description>SQL injection attempt with potential command execution</description>
+    <group>rce,sqli,database_attack</group>
+  </rule>
+  
+    <!-- Rule 100006: Serialization-based RCE -->
+  <rule id="100006" level="12">
+    <decoded_as>web-accesslog</decoded_as>
+    <match type="pcre2">(?i)(rO0AB|aced00|java\.lang|javax\.script|Runtime\.getRuntime|ProcessBuilder|__reduce__|pickle\.loads)</match>
+    <description>Potential deserialization-based remote code execution</description>
+    <group>rce,deserialization,web_attack</group>
+  </rule>
+  
+    <!-- Rule 100007: Suspicious file uploads -->
+  <rule id="100007" level="10">
+    <decoded_as>web-accesslog</decoded_as>
+    <match type="pcre2">(?i)\.php[3-7]?|\.asp|\.aspx|\.jsp|\.jspx|\.phtml|\.py|\.pl|\.rb|\.sh|\.bat|\.cmd</match>
+    <url type="pcre2">(?i)upload|attach|file</url>
+    <description>Suspicious executable file upload attempt</description>
+    <group>file_upload,web_shell,web_attack</group>
+  </rule>
+  
+    <!-- Rule 100008: Web shell detection in logs -->
+  <rule id="100008" level="12">
+    <decoded_as>web-accesslog</decoded_as>
+    <match type="pcre2">(?i)(c99|r57|b374k|p0wny|wso|adminer|phpMyAdmin|shell|backdoor|webshell)</match>
+    <description>Potential web shell access detected</description>
+    <group>web_shell,backdoor,web_attack</group>
+  </rule>
+  
+  <!-- Rule 100015: Large data transfer detection -->
+  <rule id="100015" level="9">
+    <decoded_as>web-accesslog</decoded_as>
+    <status>200</status>
+    <match type="pcre2">(?i)(\.zip|\.rar|\.tar|\.gz|\.7z|\.sql|\.db|\.bak|backup)</match>
+    <description>Potential data exfiltration - large file download</description>
+    <group>data_exfiltration,file_download</group>
+  </rule>
+
+</group>
