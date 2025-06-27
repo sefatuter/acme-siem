@@ -55,3 +55,18 @@ Generate an enrollment token for Elasticsearch nodes with
 username: elastic
 password: 59OkEnYcQATn=NOItyOx
 
+create alert
+```sudo nano /var/ossec/etc/ossec.conf```
+```xml
+
+
+
+<localfile>
+    <log_format>apache</log_format>
+    <location>/tmp/wazuh-test.log</location>
+  </localfile>
+```
+```
+echo '192.168.1.100 - - [28/Jun/2025:10:00:00 +0000] "GET /vulnerable.php?cmd=whoami HTTP/1.1" 200 1234 "-" "Mozilla/5.0"' >> /tmp/wazuh-test.log
+```
+
