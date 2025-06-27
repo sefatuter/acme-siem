@@ -1,6 +1,8 @@
 # Wazuh Rules
 
-| if_sid      |     A list of rule IDs separated by commas or spaces.     |     Similar to parent decoder, it matches when a rule ID on the list has previously matched.
+1. if_sid
+A list of rule IDs separated by commas or spaces.
+Similar to parent decoder, it matches when a rule ID on the list has previously matched.
 
 ```xml
 <!-- Local rules -->
