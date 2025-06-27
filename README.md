@@ -9,20 +9,16 @@ sudo apt upgrade
 ```bash
 curl -sO https://packages.wazuh.com/4.12/wazuh-install.sh && sudo bash ./wazuh-install.sh -a
 
-# https://<wazuh-dashboard-ip>:443
+# https://34.46.104.181:443
     User: admin
-    Password: 2bQ6Pu.Hj7BbdhwnTDWAXj4vo*Ih7uzI
+    Password: gz6QU1f2+4Yy4.IQkppMQk04lnYV9L6F
+
 
 #Recommended Action: Disable Wazuh Updates.
 #We recommend disabling the Wazuh package repositories after installation to prevent accidental upgrades that could break the environment.
 
 sudo sed -i "s/^deb /#deb /" /etc/apt/sources.list.d/wazuh.list
 sudo apt update
-
-```
-
-## ELK Installation
-```bash
 
 ```
 
