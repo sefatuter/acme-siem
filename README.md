@@ -57,5 +57,5 @@ Generate an enrollment token for Elasticsearch nodes with
  sudo systemctl start elasticsearch.service
 ```
 username: elastic
-password: 7mcqcDjbO-1Un4AlvTA
+password: 59OkEnYcQATn=NOItyOx
 
