@@ -208,6 +208,9 @@ custom-slack.py -> add code block to generate_message():
 ```
 check if there is errors: ```tail -f /var/ossec/logs/ossec.log | grep -i custom-slack```
 
+---
+## Webhook + Interactive Components Integration:
+
 With ngrok:
 ```bash
 ngrok config add-authtoken 2z8pSLOYdLbT4lv7aOu1uSdd9FJ_27PZ5uoUJgxTWgcYgJFwB
@@ -225,9 +228,15 @@ and don't forget to change -> Interactivity & Shortcuts -> Request URL to https:
 
 ---
 
-Webhook + Interactive Components Integration:
-
+With CloudFlare:
 ```
 sudo apt update
-sudo apt install -y nginx python3-certbot-nginx
+curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
+sudo dpkg -i cloudflared.deb
+cloudflared tunnel login
+cloudflared tunnel --url http://localhost:5000
+```
+and don't forget to change -> Interactivity & Shortcuts -> Request URL to https://.....trycloudflare.com/slack/actions
+
+![image](https://github.com/user-attachments/assets/7c83e545-a1fb-4193-afed-2c564d11aea7)
 
