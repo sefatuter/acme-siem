@@ -1,5 +1,35 @@
 # acme-siem
+Security information & event management node – receives logs, stores them, runs correlation rules, raises alerts, sends Slack webhooks, shows dashboards.
 
+## Create GCP VM Instance
+
+- VM instance name: acme-siem
+- Machine type: e2-standard-4 (4 vCPU, 2 core, 16 GB memory)
+- OS and Storage 
+Operating system: Ubuntu
+Version: Ubuntu 22.04 LTS Minimal x86/64, amd64 jammy minimal image built on 2025-06-26
+Boot disk type: Balanced persistent disk
+Size (GB): 50
+
+Edit VM Instance:
+
+- Go to the VPC networks -> Select default -> Firewalls -> Add Firewall Rule
+Name: allow-wazuh-dashboard
+Network: default
+Priority: 1000
+Direction of traffic: Ingress
+Action on match: Allow
+
+Targets: Specified target tags -> Target tags: wazuh-lab 
+Source filter: IPv4 ranges -> 0.0.0.0/0
+
+Protocols and ports: Specified protocols and ports -> TCP 443,1514,1515,5601,9200,5000
+
+- After saving Firewall Rule Go to the acme-siem instance and edit
+Select -> Network interface: Primary internal IPv4 address -> Ephemeral, External IPv4 address -> Ephemeral
+Add -> Network tags: wazuh-lab
+
+## Update linux ubuntu 22.04
 ```bash
 sudo apt update
 sudo apt upgrade
@@ -9,7 +39,7 @@ sudo apt upgrade
 ```bash
 curl -sO https://packages.wazuh.com/4.12/wazuh-install.sh && sudo bash ./wazuh-install.sh -a
 
-# https://34.46.104.181:443
+# https://<VM_EXTERNAL_IP>:443
     User: admin
     Password: gz6QU1f2+4Yy4.IQkppMQk04lnYV9L6F
 
@@ -19,54 +49,97 @@ curl -sO https://packages.wazuh.com/4.12/wazuh-install.sh && sudo bash ./wazuh-i
 
 sudo sed -i "s/^deb /#deb /" /etc/apt/sources.list.d/wazuh.list
 sudo apt update
-
 ```
 
-```bash
---------------------------- Security autoconfiguration information ------------------------------
-
-Authentication and authorization are enabled.
-TLS for the transport and HTTP layers is enabled and configured.
-
-The generated password for the elastic built-in superuser is : rwhZXDoijycvjh62qOux
-
-If this node should join an existing cluster, you can reconfigure this with
-'/usr/share/elasticsearch/bin/elasticsearch-reconfigure-node --enrollment-token <token-here>'
-after creating an enrollment token on your existing cluster.
-
-You can complete the following actions at any time:
-
-Reset the password of the elastic built-in superuser with 
-'/usr/share/elasticsearch/bin/elasticsearch-reset-password -u elastic'.
-
-Generate an enrollment token for Kibana instances with 
- '/usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s kibana'.
-
-Generate an enrollment token for Elasticsearch nodes with 
-'/usr/share/elasticsearch/bin/elasticsearch-create-enrollment-token -s node'.
-
--------------------------------------------------------------------------------------------------
-### NOT starting on installation, please execute the following statements to configure elasticsearch service to start automatically using systemd
- sudo systemctl daemon-reload
- sudo systemctl enable elasticsearch.service
-### You can start elasticsearch service by executing
- sudo systemctl start elasticsearch.service
+## Create Agent
 ```
-username: elastic
-password: 59OkEnYcQATn=NOItyOx
+```
 
-create alert
+# acme-server
+
+Monitored workload – the machine we care about and want to protect. Runs the application that might be attacked. A lightweight Wazuh agent ships its local logs up to the manager.
+
+## Create GCP VM Instance
+
+- VM instance name: acme-server
+- Machine type: e2-standard-2 (2 vCPUs, 8 GB Memory)
+- OS and Storage 
+Operating system: Ubuntu
+Version: Ubuntu 22.04 LTS Minimal x86/64, amd64 jammy minimal image built on 2025-06-26
+Boot disk type: Balanced persistent disk
+Size (GB): 50
+
+Edit VM Instance:
+
+Firewalls
+- Allow HTTP traffic
+- Allow HTTPS traffic
+
+---
+
+# acme-siem continued
+
+## Some Detection rules
+```xml
+<!-- remote_detection_rules.xml -->
+<group name="custom_high_priority">
+  <!-- RCE via command-injection -->
+  <rule id="120001" level="12">
+    <if_sid>31100</if_sid>
+    <regex type="pcre2">(?i)(cmd=|command=|exec=|system=|shell=|bash=|sh=|powershell=|cmd\.exe)</regex>
+    <description>Potential RCE via command parameter</description>
+    <group>rce,web_attack</group>
+  </rule>
+
+  <!-- Back-tick / eval / $() payloads -->
+  <rule id="120002" level="12">
+    <if_sid>31100</if_sid>
+    <regex type="pcre2">(?i)(%60|`|\$\(|\${|eval\(|base64_decode|shell_exec\()</regex>
+    <description>Suspicious code-execution payload in URL</description>
+    <group>rce,web_attack</group>
+  </rule>
+
+  <!-- SQLi + xp_cmdshell -->
+  <rule id="120005" level="12">
+    <if_sid>31100</if_sid>
+    <regex type="pcre2">(?i)(xp_cmdshell|sp_execute_external_script|OPENROWSET|INTO\s+OUTFILE|LOAD_FILE)</regex>
+    <description>SQL injection with possible command execution</description>
+    <group>rce,sqli</group>
+  </rule>
+</group>
+```
+
+## Create Alert + Slack
 ```sudo nano /var/ossec/etc/ossec.conf```
 ```xml
-
+<integration>
+  <name>slack</name>
+  <hook_url>https://hooks.slack.com/services/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</hook_url>
+  <alert_format>json</alert_format>
+  <level>12</level>
+</integration>
 
 
 <localfile>
-    <log_format>apache</log_format>
-    <location>/tmp/wazuh-test.log</location>
-  </localfile>
+  <log_format>apache</log_format>
+  <location>/tmp/wazuh-test.log</location>
+</localfile>
 ```
+```bash
+sudo systemctl restart wazuh-manager
+sudo systemctl status wazuh-manager
 ```
+
+## Test Logs in Terminal or Wazuh Dashboard
+```https://<VM_EXTERNAL_IP>/app/rules#/manager/?tab=ruleset``` -> Ruleset Test
+```bash
+/var/ossec/bin/wazuh-logtest -V
+/var/ossec/bin/wazuh-logtest
+```
+
+## Run alerts via log file
+```bash
+mkdir -p /tmp/wazuh-test.log
 echo '192.168.1.100 - - [28/Jun/2025:10:00:00 +0000] "GET /vulnerable.php?cmd=whoami HTTP/1.1" 200 1234 "-" "Mozilla/5.0"' >> /tmp/wazuh-test.log
 ```
 
