@@ -33,6 +33,7 @@ Add -> Network tags: wazuh-lab
 ```bash
 sudo apt update
 sudo apt upgrade
+sudo apt install nano
 ```
 
 ## Wazuh Installation
