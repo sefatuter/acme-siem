@@ -60,12 +60,12 @@ Agent Name: ubuntu-s1
 Select Group: default
 
 - Run the given commands on acme-server, then start the agent
-```
+```bash
 sudo apt update
 sudo apt upgrade
 wget https://packages.wazuh.com/....
 ```
-```
+```bash
 sudo systemctl daemon-reload
 sudo systemctl enable wazuh-agent
 sudo systemctl start wazuh-agent
@@ -177,7 +177,7 @@ chmod 755 /var/ossec/integrations/custom-slack.py
 sudo nano /var/ossec/integrations/custom-slack.py
 ```
 custom-slack.py -> add code block to generate_message():
-```
+```py
     msg['fields'].append({'title': 'Location', 'value': alert['location']})
     msg['fields'].append(
         {
@@ -229,7 +229,7 @@ and don't forget to change -> Interactivity & Shortcuts -> Request URL to https:
 ---
 
 With CloudFlare:
-```
+```bash
 sudo apt update
 curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
 sudo dpkg -i cloudflared.deb
@@ -240,3 +240,30 @@ and don't forget to change -> Interactivity & Shortcuts -> Request URL to https:
 
 ![image](https://github.com/user-attachments/assets/7c83e545-a1fb-4193-afed-2c564d11aea7)
 
+- Running as a service
+creating a systemd service unit:
+```sudo nano /etc/systemd/system/cloudflared-tunnel.service```
+
+```service
+# /etc/systemd/system/cloudflared-tunnel.service
+[Unit]
+Description=Cloudflare Tunnel for Slack Integration
+After=network.target
+
+[Service]
+ExecStart=/usr/bin/cloudflared tunnel --url http://localhost:5000 --no-autoupdate
+Restart=always
+User=root
+
+[Install]
+WantedBy=multi-user.target
+```
+```bash
+sudo systemctl daemon-reload
+sudo systemctl restart cloudflared-tunnel
+```
+
+See the Tunnel URL -> ```journalctl -u cloudflared-tunnel -n 20 --no-pager | grep -Eo 'https://[a-z0-9-]+\.trycloudflare\.com'```
+and don't forget to change -> Interactivity & Shortcuts -> Request URL to https://.....trycloudflare.com/slack/actions
+
+---
