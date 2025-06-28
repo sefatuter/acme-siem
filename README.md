@@ -60,6 +60,8 @@ Select Group: default
 
 - Run the given commands on acme-server, then start the agent
 ```
+sudo apt update
+sudo apt upgrade
 wget https://packages.wazuh.com/....
 ```
 ```
