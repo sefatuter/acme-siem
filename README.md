@@ -409,6 +409,27 @@ and don't forget to change (https://api.slack.com/apps) -> Interactivity & Short
 
 ## Wazuh Active Response
 
+Test default active response:
+
+```conf
+<active-response>
+  <disabled>no</disabled>
+  <command>firewall-drop</command>
+  <location>local</location>
+  <!-- you can list several IDs, comma-separated -->
+  <rules_id>5710,5712,5763</rules_id>
+  <timeout>180</timeout>
+</active-response>
+```
+```sudo systemctl restart wazuh-manager```
+
+```bash
+for i in {1..10}; do
+    ssh -o ConnectTimeout=2 wronguser@localhost 2>/dev/null
+    sleep 5
+done
+```
+
 Block Ip Script:
 
 ```sudo nano /var/ossec/active-response/bin/block_ip.sh```
