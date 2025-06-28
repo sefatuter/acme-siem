@@ -208,6 +208,26 @@ custom-slack.py -> add code block to generate_message():
 ```
 check if there is errors: ```tail -f /var/ossec/logs/ossec.log | grep -i custom-slack```
 
+With ngrok:
+```bash
+ngrok config add-authtoken 2z8pSLOYdLbT4lv7aOu1uSdd9FJ_27PZ5uoUJgxTWgcYgJFwB
+ngrok http 5000
+```
+and run the python on another terminal
+```bash
+cd /opt/wazuh-slack-handler
+source venv/bin/activate
+python slack_actions.py
+```
+and don't forget to change -> Interactivity & Shortcuts -> Request URL to https://......ngrok-free.app/slack/actions
+
 ![image](https://github.com/user-attachments/assets/196867bc-6cda-4042-8ca3-b8dcb5f51c40)
 
+---
+
+Webhook + Interactive Components Integration:
+
+```
+sudo apt update
+sudo apt install -y nginx python3-certbot-nginx
 
