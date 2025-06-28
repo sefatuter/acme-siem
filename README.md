@@ -207,3 +207,7 @@ custom-slack.py -> add code block to generate_message():
     ]
 ```
 check if there is errors: ```tail -f /var/ossec/logs/ossec.log | grep -i custom-slack```
+
+![image](https://github.com/user-attachments/assets/196867bc-6cda-4042-8ca3-b8dcb5f51c40)
+
+
