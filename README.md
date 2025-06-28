@@ -165,4 +165,9 @@ sudo systemctl status wazuh-manager
 echo '192.168.1.100 - - [28/Jun/2025:10:00:00 +0000] "GET /vulnerable.php?cmd=whoami HTTP/1.1" 200 1234 "-" "Mozilla/5.0"' >> /tmp/wazuh-test.log
 echo '192.0.2.88 - - [28/Jun/2025:14:00:00 +0000] "GET /exploit.php?tool=curl HTTP/1.1" 200 1337 "-" "curl/7.68.0"' >> /tmp/wazuh-test.log
 ```
+Now slack is showing alerts correctly, add buttons to slack message: True Positive, False Positive
 
+```bash
+sudo cp /var/ossec/integrations/slack.py /var/ossec/integrations/custom_slack.py
+sudo nano /var/ossec/integrations/custom_slack.py
+```
