@@ -318,7 +318,7 @@ cd /opt/wazuh-slack-handler
 source venv/bin/activate
 python slack_actions.py
 ```
-and don't forget to change -> Interactivity & Shortcuts -> Request URL to https://......ngrok-free.app/slack/actions
+and don't forget to change (https://api.slack.com/apps) -> Interactivity & Shortcuts -> Request URL to https://......ngrok-free.app/slack/actions
 
 ![image](https://github.com/user-attachments/assets/196867bc-6cda-4042-8ca3-b8dcb5f51c40)
 
@@ -332,7 +332,7 @@ sudo dpkg -i cloudflared.deb
 cloudflared tunnel login
 cloudflared tunnel --url http://localhost:5000
 ```
-and don't forget to change -> Interactivity & Shortcuts -> Request URL to https://.....trycloudflare.com/slack/actions
+and don't forget to change (https://api.slack.com/apps) -> Interactivity & Shortcuts -> Request URL to https://.....trycloudflare.com/slack/actions
 
 ![image](https://github.com/user-attachments/assets/7c83e545-a1fb-4193-afed-2c564d11aea7)
 
@@ -362,6 +362,6 @@ sudo systemctl status cloudflared-tunnel
 
 See the Tunnel URL -> ```journalctl -u cloudflared-tunnel -n 20 --no-pager | grep -Eo 'https://[a-z0-9-]+\.trycloudflare\.com'```
 
-and don't forget to change -> Interactivity & Shortcuts -> Request URL to https://.....trycloudflare.com/slack/actions
+and don't forget to change (https://api.slack.com/apps) -> Interactivity & Shortcuts -> Request URL to https://.....trycloudflare.com/slack/actions
 
 ---
