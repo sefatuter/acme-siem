@@ -39,9 +39,9 @@ sudo apt upgrade
 ```bash
 curl -sO https://packages.wazuh.com/4.12/wazuh-install.sh && sudo bash ./wazuh-install.sh -a
 
-# https://<VM_EXTERNAL_IP>:443
+# Access the web interface https://<wazuh-dashboard-ip>:443
     User: admin
-    Password: gz6QU1f2+4Yy4.IQkppMQk04lnYV9L6F
+    Password: tUyPp6W1na+VH7tUHsJkRCce.iobjVrH
 
 
 #Recommended Action: Disable Wazuh Updates.
