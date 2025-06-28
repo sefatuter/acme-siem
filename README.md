@@ -208,6 +208,77 @@ custom-slack.py -> add code block to generate_message():
 ```
 check if there is errors: ```tail -f /var/ossec/logs/ossec.log | grep -i custom-slack```
 
+## Create Flask File
+
+```
+sudo apt update
+sudo apt install -y python3-venv
+mkdir -p /opt/wazuh-slack-handler
+cd /opt/wazuh-slack-handler
+```
+Create Environment:
+```
+python3 -m venv venv
+source venv/bin/activate
+pip install flask slack_sdk requests
+```
+Create action file:
+```sudo nano /opt/wazuh-slack-handler/slack_demo.py```
+```py
+from flask import Flask, request, abort
+import json, os, datetime as dt
+
+app  = Flask(__name__)
+PORT = 5000                     # change if 5000 is taken
+
+# ── utilities ────────────────────────────────────────────────────────────
+def log(msg):
+    ts = dt.datetime.now().isoformat(timespec="seconds")
+    print(f"[{ts}] {msg}", flush=True)
+
+# ── main endpoint ────────────────────────────────────────────────────────
+@app.route("/slack/actions", methods=["POST"])
+def slack_actions():
+    try:
+        payload = json.loads(request.form["payload"])
+    except (KeyError, json.JSONDecodeError):
+        return abort(400, "Bad payload")
+
+    button_value = payload["actions"][0]["value"]   # "TP|1751052544.2016042"
+    label, alert_id = button_value.split("|", 1)
+
+    if label == "TP":
+        handle_true_positive(alert_id, payload)
+    elif label == "FP":
+        handle_false_positive(alert_id, payload)
+    else:
+        abort(400, "Unknown button")
+
+    return "", 200          # Slack only needs a 200 OK
+
+# ── placeholder logic ────────────────────────────────────────────────────
+def handle_true_positive(alert_id, payload):
+    """
+    Pretend to invoke Wazuh active-response here.
+    For now we just print a line; replace with real API call later.
+    """
+    src_ip = payload["original_message"]["attachments"][0]["fields"][0]["value"]
+    log(f"TP  -> would call active-response to block {src_ip} (alert {alert_id})")
+
+def handle_false_positive(alert_id, payload):
+    """
+    Pretend to mark the rule as ignored.
+    """
+    rule_id_field = payload["original_message"]["attachments"][0]["fields"][-1]["value"]
+    rule_id = rule_id_field.split()[0]
+    log(f"FP  -> would tune out rule {rule_id} (alert {alert_id})")
+
+# ── main ────────────────────────────────────────────────────────────────
+if __name__ == "__main__":
+    log("Starting Slack action demo …")
+    app.run(host="0.0.0.0", port=PORT)
+```
+
 - Running as a service
 creating a systemd service unit:
 ```sudo nano /etc/systemd/system/slack-flask.service```
