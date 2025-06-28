@@ -155,7 +155,6 @@ sudo systemctl status wazuh-manager
 
 ## Run alerts via log file
 ```bash
-mkdir -p /tmp/wazuh-test.log
 echo '192.168.1.100 - - [28/Jun/2025:10:00:00 +0000] "GET /vulnerable.php?cmd=whoami HTTP/1.1" 200 1234 "-" "Mozilla/5.0"' >> /tmp/wazuh-test.log
 ```
 
