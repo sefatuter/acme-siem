@@ -52,7 +52,20 @@ sudo apt update
 ```
 
 ## Create Agent
+- Wazuh Dashboard -> Agent Management -> Summary -> Deploy New Agent
+Package: Linux DEB amd64
+Server Address: <VM_EXTERNAL_IP>
+Agent Name: ubuntu-s1
+Select Group: default
+
+- Run the given commands on acme-server, then start the agent
 ```
+wget https://packages.wazuh.com/....
+```
+```
+sudo systemctl daemon-reload
+sudo systemctl enable wazuh-agent
+sudo systemctl start wazuh-agent
 ```
 
 # acme-server
