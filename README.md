@@ -290,6 +290,7 @@ sudo systemctl status cloudflared-tunnel
 ```
 
 See the Tunnel URL -> ```journalctl -u cloudflared-tunnel -n 20 --no-pager | grep -Eo 'https://[a-z0-9-]+\.trycloudflare\.com'```
+
 and don't forget to change -> Interactivity & Shortcuts -> Request URL to https://.....trycloudflare.com/slack/actions
 
 ---
