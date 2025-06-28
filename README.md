@@ -122,6 +122,13 @@ Firewalls
     <description>SQL injection with possible command execution</description>
     <group>rce,sqli</group>
   </rule>
+
+  <rule id="120010" level="13">
+    <if_sid>31100</if_sid>
+    <regex type="pcre2">(?i)(wget|curl|nc|netcat)</regex>
+    <description>Level 13: Possible download tool in request</description>
+    <group>web_attack,tools</group>
+  </rule>
 </group>
 ```
 
@@ -156,5 +163,6 @@ sudo systemctl status wazuh-manager
 ## Run alerts via log file
 ```bash
 echo '192.168.1.100 - - [28/Jun/2025:10:00:00 +0000] "GET /vulnerable.php?cmd=whoami HTTP/1.1" 200 1234 "-" "Mozilla/5.0"' >> /tmp/wazuh-test.log
+echo '192.0.2.88 - - [28/Jun/2025:14:00:00 +0000] "GET /exploit.php?tool=curl HTTP/1.1" 200 1337 "-" "curl/7.68.0"' >> /tmp/wazuh-test.log
 ```
 
