@@ -168,6 +168,42 @@ echo '192.0.2.88 - - [28/Jun/2025:14:00:00 +0000] "GET /exploit.php?tool=curl HT
 Now slack is showing alerts correctly, add buttons to slack message: True Positive, False Positive
 
 ```bash
-sudo cp /var/ossec/integrations/slack.py /var/ossec/integrations/custom_slack.py
-sudo nano /var/ossec/integrations/custom_slack.py
+sudo cp /var/ossec/integrations/slack.py /var/ossec/integrations/custom-slack.py
+sudo cp /var/ossec/integrations/slack /var/ossec/integrations/custom-slack
+chmod 755 /var/ossec/integrations/custom-slack
+chmod 755 /var/ossec/integrations/custom-slack.py
 ```
+```bash
+sudo nano /var/ossec/integrations/custom-slack.py
+```
+custom-slack.py -> add code block to generate_message():
+```
+    msg['fields'].append({'title': 'Location', 'value': alert['location']})
+    msg['fields'].append(
+        {
+            'title': 'Rule ID',
+            'value': f"{alert['rule']['id']} _(Level {level})_",
+        }
+    )
+
+    msg['ts'] = alert['id']
+    msg['callback_id'] = f"wazuh_{alert['id']}"
+
+    msg['actions'] = [
+        {
+            "name": "tp",
+            "text": "TP",
+            "type": "button",
+            "style": "primary",
+            "value": f"TP|{alert['id']}"
+        },
+        {
+            "name": "fp",
+            "text": "FP",
+            "type": "button",
+            "style": "danger",
+            "value": f"FP|{alert['id']}"
+        }
+    ]
+```
+check if there is errors: ```tail -f /var/ossec/logs/ossec.log | grep -i custom-slack```
