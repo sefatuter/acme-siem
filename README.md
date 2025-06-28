@@ -99,6 +99,7 @@ Firewalls
 ```xml
 <!-- remote_detection_rules.xml -->
 <group name="custom_high_priority">
+<!-- ------------------------------------------------- -->
   <!-- RCE via command-injection -->
   <rule id="120001" level="12">
     <if_sid>31100</if_sid>
@@ -128,6 +129,44 @@ Firewalls
     <regex type="pcre2">(?i)(wget|curl|nc|netcat)</regex>
     <description>Level 13: Possible download tool in request</description>
     <group>web_attack,tools</group>
+  </rule>
+<!-- Failed Login Detection Rules -->
+  <!-- SSH specific failed login (uses existing SSH rule as parent) -->
+  <rule id="120020" level="10">
+    <if_sid>5760</if_sid>
+    <description>SSH failed login attempt detected</description>
+    <group>failed_login,ssh,authentication_failed</group>
+  </rule>
+<!-- ------------------------------------------------- -->
+  <!-- Multiple SSH failed login attempts from same IP -->
+  <rule id="120021" level="10" frequency="2" timeframe="300">
+    <if_matched_sid>120020</if_matched_sid>
+    <same_source_ip />
+    <description>Multiple SSH failed login attempts from same IP: $(srcip)</description>
+    <group>failed_login,ssh,brute_force</group>
+  </rule>
+
+  <!-- High number of SSH failed login attempts - trigger ban -->
+  <rule id="120022" level="12" frequency="3" timeframe="300">
+    <if_matched_sid>120020</if_matched_sid>
+    <same_source_ip />
+    <description>SSH IP $(srcip) blocked due to multiple failed login attempts</description>
+    <group>failed_login,ssh,brute_force,ip_ban</group>
+  </rule>
+
+  <!-- General system login failures -->
+  <rule id="120023" level="10">
+    <if_sid>5503,5504,5551,5552</if_sid>
+    <description>System login failure detected</description>
+    <group>failed_login,authentication_failed</group>
+  </rule>
+
+  <!-- Multiple system login failures -->
+  <rule id="120024" level="12" frequency="3" timeframe="300">
+    <if_matched_sid>120023</if_matched_sid>
+    <same_source_ip />
+    <description>System login IP $(srcip) blocked due to brute force attack</description>
+    <group>failed_login,brute_force,ip_ban</group>
   </rule>
 </group>
 ```
@@ -367,3 +406,13 @@ See the Tunnel URL -> ```journalctl -u cloudflared-tunnel -n 20 --no-pager | gre
 and don't forget to change (https://api.slack.com/apps) -> Interactivity & Shortcuts -> Request URL to https://.....trycloudflare.com/slack/actions
 
 ---
+
+## Wazuh Active Response
+
+Block Ip Script:
+
+```sudo nano /var/ossec/active-response/bin/block_ip.sh```
+
+```sh
+
+```
