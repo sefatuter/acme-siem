@@ -208,6 +208,31 @@ custom-slack.py -> add code block to generate_message():
 ```
 check if there is errors: ```tail -f /var/ossec/logs/ossec.log | grep -i custom-slack```
 
+- Running as a service
+creating a systemd service unit:
+```sudo nano /etc/systemd/system/slack-flask.service```
+
+```service
+[Unit]
+Description=Flask Webhook Handler for Slack Buttons
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/wazuh-slack-handler
+Environment="PATH=/opt/wazuh-slack-handler/venv/bin"
+ExecStart=/opt/wazuh-slack-handler/venv/bin/python slack_actions.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now slack-flask
+sudo systemctl status slack-flask
+```
+
 ---
 ## Webhook + Interactive Components Integration:
 
@@ -261,6 +286,7 @@ WantedBy=multi-user.target
 ```bash
 sudo systemctl daemon-reload
 sudo systemctl restart cloudflared-tunnel
+sudo systemctl status cloudflared-tunnel
 ```
 
 See the Tunnel URL -> ```journalctl -u cloudflared-tunnel -n 20 --no-pager | grep -Eo 'https://[a-z0-9-]+\.trycloudflare\.com'```
