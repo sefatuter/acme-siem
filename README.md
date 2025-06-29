@@ -438,7 +438,30 @@ for i in {1..10}; do
 done
 ```
 
+
 ![image](https://github.com/user-attachments/assets/8dc53bf9-3fad-4262-99c9-80a945e749bd)
+
+
+```bash
+sudo watch iptables -L -n
+sudo tail -f /var/ossec/logs/active-responses.log
+```
+
+![image](https://github.com/user-attachments/assets/ff25fdf8-9082-43d8-8e4d-e76ff02f0055)
+
+
+![image](https://github.com/user-attachments/assets/ad89ccd3-75a5-496d-9998-d3d120af0411)
+
+
+Active response structure:
+- The ```<command>``` block contains information about the action to be executed on the Wazuh agent
+- ```<name>``` Sets a name for the command. In our case -> firewall-drop
+- ```<executable>``` file in /var/ossec/active-response/bin/, Specifies the active response script or executable that must run upon a trigger. In this case, it’s the firewall-drop executable.
+- ```<timeout_allowed>``` – if yes, Wazuh may send the script a delete request when the ```<timeout>``` expires.
+- In this case ```<timeout>180</timeout>``` → “After 180 seconds, please un-do the block.” ```<timeout_allowed>yes</timeout_allowed>``` → “I allow you to call the script again with ```ACTION=delete```.”
+
+
+
 
 
 Block Ip Script:
