@@ -487,23 +487,65 @@ Testing host blocked unblocked ```ssh -o ConnectTimeout=2 nosuchuser@<AGENT_IP> 
 
 Wherever we expect the script to run, it needs to live under that node’s Wazuh installation in: ```sudo nano /var/ossec/active-response/bin/....``` Agent or Manager VM.
 
+Where to put scripts?
+
+Put your active-response scripts under the same directory on every node that might execute them:
+- Path: ```/var/ossec/active-response/bin/<my-script>```
+- If configure ```<location>local</location>``` and only the manager/agent runs it, install it just on manager.
+- If configure ```<location>001,005,012</location>``` for an agent, install it on that agent (acme-server/ubuntu-s1).
+- If configure ```<location>all</location>``` (or list multiple IDs), install the script on both the manager and every agent.
+
+That way, whichever node Wazuh tells “run this,” it finds the script in ```/var/ossec/active-response/bin/```.
+* Put the script where it might work or where we want it to work.
+* Declare the ```<active-response>``` block in Manager only.
+* Manager (acme-siem): hosts the ```<command>``` and ```<active-response>``` stanzas.
+
+Negate = "Don't include this situation, focus on the opposite."
+
 - Ban Host Script:
 
 ```sudo nano /var/ossec/active-response/bin/ban-host.sh```
 Make it executable ```chmod +x /var/ossec/active-response/bin/ban-host.sh```
 
-Where to put scripts?
-
-Put your active-response scripts under the same directory on every node that might execute them:
-- Path: ```/var/ossec/active-response/bin/<my-script>```
-- If configure ```<location>local</location>``` and only the manager runs it, install it just on acme-siem.
-- If configure ```<location>local</location>``` for an agent, install it on that agent (acme-server/ubuntu-s1).
-- If configure ```<location>all</location>``` (or list multiple IDs), install the script on both the manager and every agent.
-
-That way, whichever node Wazuh tells “run this,” it finds the script in ```/var/ossec/active-response/bin/```.
-* put the script where it might work or where we want it to work.
-
-
 ```sh
+#!/bin/bash
 
+# Wazuh provides:
+#   ACTION = add | delete
+#   SRCIP  = the IP address from the alert
+IP="$SRCIP"
+
+if [[ "$ACTION" == "add" ]]; then
+  iptables -I INPUT -s "$IP" -j DROP
+elif [[ "$ACTION" == "delete" ]]; then
+  iptables -D INPUT -s "$IP" -j DROP
+else
+  exit 1
+fi
+
+exit 0
 ```
+
+**Simulate the script**
+
+```bash
+# Simulate a block
+sudo ACTION=add SRCIP=203.0.113.55 /var/ossec/active-response/bin/ban-host.sh
+iptables -L -n | grep 203.0.113.55   # you should see the DROP rule
+
+# Simulate an unblock
+sudo ACTION=delete SRCIP=203.0.113.55 /var/ossec/active-response/bin/ban-host.sh
+iptables -L -n | grep 203.0.113.55   # the rule should be gone
+```
+
+![image](https://github.com/user-attachments/assets/0500ecba-78c1-4172-8880-5ab1aec6a3d6)
+
+
+**Custom Script**
+
+![image](https://github.com/user-attachments/assets/6b13ec70-bd0f-4147-8c04-3a40170db196)
+
+
+```sudo cat /var/ossec/ar-test-result.txt```
+
+```sudo tail -f /var/ossec/logs/active-responses.log```
