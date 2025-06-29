@@ -94,7 +94,6 @@ Firewalls
 ---
 
 # acme-siem continued
-
 ## Some Detection rules
 ```xml
 <!-- remote_detection_rules.xml -->
@@ -170,6 +169,10 @@ Firewalls
   </rule>
 </group>
 ```
+
+Rule Structure:
+
+
 
 ## Create Alert + Slack
 ```sudo nano /var/ossec/etc/ossec.conf```
@@ -482,9 +485,24 @@ Testing host blocked unblocked ```ssh -o ConnectTimeout=2 nosuchuser@<AGENT_IP> 
 
 Writing my own Active Response Script
 
-- Block Ip Script:
+Wherever we expect the script to run, it needs to live under that node’s Wazuh installation in: ```sudo nano /var/ossec/active-response/bin/....``` Agent or Manager VM.
 
-```sudo nano /var/ossec/active-response/bin/block_ip.sh```
+- Ban Host Script:
+
+```sudo nano /var/ossec/active-response/bin/ban-host.sh```
+Make it executable ```chmod +x /var/ossec/active-response/bin/ban-host.sh```
+
+Where to put scripts?
+
+Put your active-response scripts under the same directory on every node that might execute them:
+- Path: ```/var/ossec/active-response/bin/<my-script>```
+- If configure ```<location>local</location>``` and only the manager runs it, install it just on acme-siem.
+- If configure ```<location>local</location>``` for an agent, install it on that agent (acme-server/ubuntu-s1).
+- If configure ```<location>all</location>``` (or list multiple IDs), install the script on both the manager and every agent.
+
+That way, whichever node Wazuh tells “run this,” it finds the script in ```/var/ossec/active-response/bin/```.
+* put the script where it might work or where we want it to work.
+
 
 ```sh
 
