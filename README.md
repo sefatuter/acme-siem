@@ -412,7 +412,7 @@ and don't forget to change (https://api.slack.com/apps) -> Interactivity & Short
 
 ## Wazuh Active Response
 
-Active response structure:
+**Active response structure:**
 
 - The ```<command>``` block contains information about the action to be executed on the Wazuh agent
 - ```<name>``` Sets a name for the command. In our case -> firewall-drop
@@ -449,7 +449,7 @@ Test default active response:
 ```
 ```sudo systemctl restart wazuh-manager```
 
-Testing the configuration
+**Testing the configuration**
 
 ![image](https://github.com/user-attachments/assets/eb195481-28ac-4e79-b3c6-c612d05416cd)
 
@@ -483,7 +483,7 @@ Testing host blocked unblocked ```ssh -o ConnectTimeout=2 nosuchuser@<AGENT_IP> 
 ![image](https://github.com/user-attachments/assets/ebc17b84-da59-4227-86e6-88e48f3d4228)
 
 
-Writing my own Active Response Script
+**Writing my own Active Response Script**
 
 Wherever we expect the script to run, it needs to live under that node’s Wazuh installation in: ```sudo nano /var/ossec/active-response/bin/....``` Agent or Manager VM.
 
