@@ -412,6 +412,13 @@ and don't forget to change (https://api.slack.com/apps) -> Interactivity & Short
 Test default active response:
 
 ```conf
+<!-- Default -->
+  <command>
+    <name>firewall-drop</name>
+    <executable>firewall-drop</executable>
+    <timeout_allowed>yes</timeout_allowed>
+  </command>
+
 <active-response>
   <disabled>no</disabled>
   <command>firewall-drop</command>
@@ -423,12 +430,16 @@ Test default active response:
 ```
 ```sudo systemctl restart wazuh-manager```
 
+Test from another VM instead of Agent vm, because firewall-drop only blocks real remote addresses
+(it skips 127., 10., 172.16/12, 192.168/16 unless you edit the script) 
 ```bash
 for i in {1..10}; do
-    ssh -o ConnectTimeout=2 wronguser@localhost 2>/dev/null
-    sleep 5
+    ssh -o ConnectTimeout=2 wronguser@<AGENT_IP> 2>/dev/null
 done
 ```
+
+![image](https://github.com/user-attachments/assets/8dc53bf9-3fad-4262-99c9-80a945e749bd)
+
 
 Block Ip Script:
 
