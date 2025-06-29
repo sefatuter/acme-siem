@@ -409,6 +409,22 @@ and don't forget to change (https://api.slack.com/apps) -> Interactivity & Short
 
 ## Wazuh Active Response
 
+Active response structure:
+
+- The ```<command>``` block contains information about the action to be executed on the Wazuh agent
+- ```<name>``` Sets a name for the command. In our case -> firewall-drop
+- ```<executable>``` file in /var/ossec/active-response/bin/, Specifies the active response script or executable that must run upon a trigger. In this case, it’s the firewall-drop executable.
+- ```<timeout_allowed>``` – if yes, Wazuh may send the script a delete request when the ```<timeout>``` expires.
+- In this case ```<timeout>180</timeout>``` → “After 180 seconds, please un-do the block.” ```<timeout_allowed>yes</timeout_allowed>``` → “I allow you to call the script again with ```ACTION=delete```.”
+
+
+- ```<active-response>``` Tells Wazuh when and where to run that tool.
+- ```<command>``` Specifies the command to configure. This is the command name firewall-drop defined in the previous step.
+- ```<location>``` Specifies where the command executes. Using the ```<location>local</location>``` value means that the command executes on the monitored endpoint where the trigger event occurs. The script runs only on the single node that generated the alert. If Agent A sees the alert → Agent A runs the script. If the Manager sees the alert (agent ID 000) → the Manager runs the script. ```<location>all</location>``` Every node (all agents and the Manager) will run the script whenever any of them gets that alert. Agent A sees an alert → Agent A, Agent B, … Manager all run the script. Manager sees an alert → again, every node runs it.
+- ```<rules_id>``` The Active Response module executes the command if rule ID 5710,5712,5763 - SSHD brute force trying to get access to the system fires.
+- ```<timeout>``` Specifies how long the active response action must last. In this use case, the module blocks for 180 seconds the IP address of the endpoint carrying out the brute-force attack.
+
+
 Test default active response:
 
 ```conf
@@ -451,16 +467,6 @@ sudo tail -f /var/ossec/logs/active-responses.log
 
 
 ![image](https://github.com/user-attachments/assets/ad89ccd3-75a5-496d-9998-d3d120af0411)
-
-
-Active response structure:
-- The ```<command>``` block contains information about the action to be executed on the Wazuh agent
-- ```<name>``` Sets a name for the command. In our case -> firewall-drop
-- ```<executable>``` file in /var/ossec/active-response/bin/, Specifies the active response script or executable that must run upon a trigger. In this case, it’s the firewall-drop executable.
-- ```<timeout_allowed>``` – if yes, Wazuh may send the script a delete request when the ```<timeout>``` expires.
-- In this case ```<timeout>180</timeout>``` → “After 180 seconds, please un-do the block.” ```<timeout_allowed>yes</timeout_allowed>``` → “I allow you to call the script again with ```ACTION=delete```.”
-
-
 
 
 
