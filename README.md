@@ -543,9 +543,12 @@ iptables -L -n | grep 203.0.113.55   # the rule should be gone
 
 **Custom Script**
 
+https://documentation.wazuh.com/current/user-manual/capabilities/active-response/custom-active-response-scripts.html#programming-an-active-response
+
+
 ![image](https://github.com/user-attachments/assets/6b13ec70-bd0f-4147-8c04-3a40170db196)
 
 
 ```sudo cat /var/ossec/ar-test-result.txt```
 
-```sudo tail -f /var/ossec/logs/active-responses.log```
+On Agent: ```sudo tail -f /var/ossec/logs/active-responses.log```
