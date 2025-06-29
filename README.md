@@ -446,6 +446,11 @@ Test default active response:
 ```
 ```sudo systemctl restart wazuh-manager```
 
+Testing the configuration
+
+![image](https://github.com/user-attachments/assets/eb195481-28ac-4e79-b3c6-c612d05416cd)
+
+
 Test from another VM instead of Agent vm, because firewall-drop only blocks real remote addresses
 (it skips 127., 10., 172.16/12, 192.168/16 unless you edit the script) 
 ```bash
@@ -468,8 +473,14 @@ sudo tail -f /var/ossec/logs/active-responses.log
 
 ![image](https://github.com/user-attachments/assets/ad89ccd3-75a5-496d-9998-d3d120af0411)
 
+Testing host blocked unblocked ```ssh -o ConnectTimeout=2 nosuchuser@<AGENT_IP> 2>/dev/null || true```
 
-Writing my own Active Response
+![image](https://github.com/user-attachments/assets/f0f2fc28-25b3-480d-b06c-f3f5a6168a37)
+
+![image](https://github.com/user-attachments/assets/ebc17b84-da59-4227-86e6-88e48f3d4228)
+
+
+Writing my own Active Response Script
 
 - Block Ip Script:
 
