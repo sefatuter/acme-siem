@@ -247,8 +247,8 @@ custom-slack.py -> add code block to generate_message():
 ```
 check if there is errors: ```tail -f /var/ossec/logs/ossec.log | grep -i custom-slack```
 
-## Create Flask File
 
+Create Flask File
 ```
 sudo apt update
 sudo apt install -y python3-venv
@@ -362,7 +362,7 @@ and don't forget to change (https://api.slack.com/apps) -> Interactivity & Short
 
 ![image](https://github.com/user-attachments/assets/196867bc-6cda-4042-8ca3-b8dcb5f51c40)
 
----
+
 
 With CloudFlare:
 ```bash
@@ -469,8 +469,9 @@ sudo tail -f /var/ossec/logs/active-responses.log
 ![image](https://github.com/user-attachments/assets/ad89ccd3-75a5-496d-9998-d3d120af0411)
 
 
+Writing my own Active Response
 
-Block Ip Script:
+- Block Ip Script:
 
 ```sudo nano /var/ossec/active-response/bin/block_ip.sh```
 
