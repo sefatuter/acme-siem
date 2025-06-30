@@ -751,5 +751,12 @@ Don't forget to put ```<localfile>``` block to ```nano /var/ossec/etc/ossec.conf
 </localfile>
 ```
 
+
 Restart the agent:
 ```sudo systemctl restart wazuh-agent```
+
+
+Making Chain:
+```xml
+
+```
