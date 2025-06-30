@@ -258,10 +258,31 @@ If the rule 100500 is matched and the event contains any valid IPv4, the rule 10
 The rule will trigger if the log message has previously been decoded by the syslog decoder. However, since the level is set to 0, the event will not be displayed on the dashboard.
 
 - ```<srcip>``` Any IP address. Used as a requisite to trigger a rule. It compares any IP address or CIDR block to an IP decoded as srcip.
+    - ```<scrip negate=yes>``` This rule will trigger when a srcip different from 10.25.23.12 is detected.
 
+```xml
+<rule id="100105" level="8">
+    <if_sid>100100</if_sid>
+    <srcip>10.25.23.12</srcip>
+    <description>Forbidden srcip has been detected.</description>
+</rule>
+```
 
+- ```<description>``` Any string. Specifies a human-readable description of the rule to provide context to each alert regarding the nature of the events matched by it.
 
+- Every rule must belong to at least one group. To specify one or more groups for a rule, enclose the rule definition with the ```<group name="GROUP1_NAME,GROUP2_NAME,">``` element. For example:
 
+```xml
+<group name="limits,">
+  <rule id="100234" level="3">
+    <if_sid>230</if_sid>
+    <field name="alert_type">normal</field>
+    <description>The file limit set for this agent is $(file_limit). Now, $(file_count) files are being monitored.</description>
+   <group>syscheck,fim_db_state,</group>
+ </rule>
+</group>
+```
+- You can also specify additional groups by including the <group> element within the rule definition. For example above. To define rules that trigger only if another rule in a specific group has triggered, check the if_group and if_matched_group options.
 
 
 ## Create Alert + Slack
