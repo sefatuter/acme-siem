@@ -663,3 +663,93 @@ https://documentation.wazuh.com/current/user-manual/capabilities/active-response
 ```sudo cat /var/ossec/ar-test-result.txt```
 
 On Agent: ```sudo tail -f /var/ossec/logs/active-responses.log```
+
+---
+
+## Activate Linux Audit Logs
+
+Where we want to collect logs, in our case in the Agent.
+
+Install & enable auditd:
+```bash
+sudo apt-get update
+sudo apt-get install -y auditd audispd-plugins
+sudo systemctl enable auditd
+sudo systemctl start auditd
+```
+
+Add audit rules for “exec” and basic FIM:
+```rules
+sudo tee /etc/audit/rules.d/30-exec-and-fim.rules >/dev/null <<'EOF'
+###########################################################
+#  EXECUTION  : log every program launch
+###########################################################
+-a exit,always -F arch=b64 -S execve -k exec_log
+
+###########################################################
+#  FILE-INTEGRITY WATCHES (writes & perms)
+###########################################################
+# System configuration
+-w /etc -p wa -k etc_changes
+# System binaries
+-w /usr/bin -p wa -k usrbin_changes
+# Web/app content (adjust path if you host elsewhere)
+-w /var/www -p wa -k www_changes
+EOF
+```
+
+Load the new rules:
+```bash
+sudo augenrules --load
+```
+
+To keep logs small change the ```sudo nano /etc/audit/auditd.conf``` to:
+
+```conf
+max_log_file       = 20      # rotate at 20 MB
+num_logs           = 10      # keep 10 rotated files
+max_log_file_action = ROTATE # never block the box
+space_left         = 500     # warn at 500 MB free
+admin_space_left   = 100     # final warning at 100 MB
+```
+
+Apply changes:
+```systemctl restart auditd```
+
+Test logs:
+```bash
+# Exec test
+/bin/ls >/dev/null
+
+# FIM test
+echo 'TEST' | sudo tee /etc/hostname.test >/dev/null
+sudo rm /etc/hostname.test
+```
+
+Search the log:
+```bash
+sudo ausearch -k exec_log -ts recent      # recent exec events
+sudo ausearch -k etc_changes -ts recent   # recent file changes
+```
+
+**What is Exec?**
+- Recording every time a program is started on the system (via the execve syscall).
+- Captures the exact command, user, and path of every process launch.
+- Great for spotting suspicious or unexpected binaries running.
+
+**What is FIM (File Integrity Monitoring)?**
+- Watching specific files or directories for changes (writes, deletes, permission tweaks).
+- Triggers when a watched file is created, modified, or removed.
+- Ideal for protecting critical configs (/etc), binaries (/usr/bin), or web content.
+- Only logs the events you explicitly configure (We configured above for -> /etc | /var/www | /usr/bin), so you can focus on high-value paths.
+
+Don't forget to put ```<localfile>``` block to ```nano /var/ossec/etc/ossec.conf```:
+```conf
+<localfile>
+  <log_format>audit</log_format>
+  <location>/var/log/audit/audit.log</location>
+</localfile>
+```
+
+Restart the agent:
+```sudo systemctl restart wazuh-agent```
