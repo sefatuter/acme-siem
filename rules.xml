@@ -63,3 +63,28 @@
   </rule>
 
 </group>
+
+
+
+
+<!-- 1) Baseline: only execve syscalls, quietly tag them -->
+  <rule id="101000" level="1">
+    <if_sid>80700</if_sid>                    <!-- all audit messages grouped -->
+    <field name="audit.syscall">59</field>    <!-- execve = syscall 59 -->
+    <field name="audit.key">exec_log</field>  <!-- your execve tag -->
+    <description>Auditd: execve baseline for process ${audit.command}</description>
+    <group>audit,exec,baseline</group>
+  </rule>
+    
+  <!-- 2) Suspicious path: binary executed from /tmp or /dev/shm → level 10 -->
+  <rule id="101010" level="10">
+    <if_matched_sid>101000</if_matched_sid>
+    <!-- Matches only when the executable path begins in a world-writable dir -->
+    <field name="audit.exe">^/tmp/</field>
+    <description>
+      Auditd: process “$(audit.command)” (proctitle: “$(audit.proctitle)”) 
+      executed by auid=$(audit.auid), uid=$(audit.uid) 
+      from suspicious directory ($(audit.exe))
+    </description>
+    <group>audit,exec,suspicious_path</group>
+  </rule>
