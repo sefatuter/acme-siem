@@ -669,6 +669,7 @@ On Agent: ```sudo tail -f /var/ossec/logs/active-responses.log```
 ## Activate Linux Audit Logs
 
 Where we want to collect logs, in our case in the Agent.
+So far it has been enough to start and simulate for learning. Now we need to improve how it actually works, how logs come in, how to split them and how to write detailed rules:
 
 Install & enable auditd:
 ```bash
@@ -731,6 +732,9 @@ Search the log:
 sudo ausearch -k exec_log -ts recent      # recent exec events
 sudo ausearch -k etc_changes -ts recent   # recent file changes
 ```
+
+```sudo tail -f /var/log/audit/audit.log```
+
 
 **What is Exec?**
 - Recording every time a program is started on the system (via the execve syscall).
