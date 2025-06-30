@@ -170,9 +170,48 @@ Firewalls
 </group>
 ```
 
-Rule Structure:
+**Rule Structure:**
+
+```xml
+<rule id="50180" level="10" frequency="8" timeframe="120" ignore="60">
+  <if_matched_sid>50125</if_matched_sid>
+  <description>MySQL: Multiple errors.</description>
+  <mitre>
+    <id>T1499</id>
+  </mitre>
+  <group>service_availability,pci_dss_10.6.1,gpg13_4.3,gdpr_IV_35.7.d,hipaa_164.312.b,nist_800_53_AU.6,tsc_CC7.2,tsc_CC7.3,</group>
+</rule>
+```
+The rule with ID 50180 triggers a level 10 alert if rule 50125 matches 8 times within 120 seconds. To prevent floods, it is ignored for 60 seconds after triggering.
 
 
+- ```<rule>``` is the label that starts the block defining a rule
+- ```<rule level=0-16 >``` Specifies the level of the rule. Alerts and responses use this value.
+- ```<rule id=1-999999>``` Specifies the ID of the rule.
+- ```<rule maxsize=1-9999``` Specifies the maximum size of the event.
+- ```<rule frequency=2-9999>``` Number of times the rule must match before generating an alert.
+- ```<rule timeframe=1-99999>``` The timeframe in seconds. This option is intended to be used with the frequency option.
+- ```<rule ignore=1-999999>``` The time (in seconds) to ignore this rule after it triggers(to avoid floods).
+- ```<rule overwrite=yes-no>``` Used to replace a rule with local changes. To maintain consistency between loaded rules, if_sid, if_group, if_level, if_matched_sid, and if_matched_group labels are not taken into account when overwriting a rule. If any of these are encountered, the original value prevails.
+- ```<rule noalert=0-1>``` Does not trigger an alert if the rule matches. 0 (alerts, value by default) or 1 (no alerts). If noalert is set to 1, the event continues analyzing other rules despite the rule matches.
+
+
+- ```<if_sid>``` Any rule ID. Multiple values must be separated by commas or spaces. You want to catch a more specific case only when a more general rule matched first.
+```<if_sid>100100,100101</if_sid>``` Only consider logs that previously matched rule 100100 or 100101.
+- ```<match>``` Used as a requisite to trigger a rule. It will search for a match in the log event.
+
+```xml
+<rule id="100110" level="5">
+  <if_sid>100100, 100101</if_sid>
+  <match>Error</match>
+  <description>There is an error in the log.</description>
+</rule>
+```
+The rule 100110 is triggered when either of the parent rules has matched and the logs contain the word Error.
+
+- ```<if_group>sysmon_event1</if_group>``` Used as a requisite to trigger a rule. This option matches if the log has previously matched a rule in the specified group.
+- ```<if_level>1-16</if_level>``` Matches if the level has matched before.
+- ```<if_matched_sid></if_matched_sid>``` Any rule id. Matches if an alert of the defined ID has been triggered in a set number of seconds. This option is used in conjunction with ```<frequency>``` and ```<timeframe>```.
 
 ## Create Alert + Slack
 ```sudo nano /var/ossec/etc/ossec.conf```
