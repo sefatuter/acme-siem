@@ -186,19 +186,18 @@ The rule with ID 50180 triggers a level 10 alert if rule 50125 matches 8 times w
 
 
 - ```<rule>``` is the label that starts the block defining a rule
-- ```<rule level=0-16 >``` Specifies the level of the rule. Alerts and responses use this value.
-- ```<rule id=1-999999>``` Specifies the ID of the rule.
-- ```<rule maxsize=1-9999``` Specifies the maximum size of the event.
-- ```<rule frequency=2-9999>``` Number of times the rule must match before generating an alert.
-- ```<rule timeframe=1-99999>``` The timeframe in seconds. This option is intended to be used with the frequency option.
-- ```<rule ignore=1-999999>``` The time (in seconds) to ignore this rule after it triggers(to avoid floods).
-- ```<rule overwrite=yes-no>``` Used to replace a rule with local changes. To maintain consistency between loaded rules, if_sid, if_group, if_level, if_matched_sid, and if_matched_group labels are not taken into account when overwriting a rule. If any of these are encountered, the original value prevails.
-- ```<rule noalert=0-1>``` Does not trigger an alert if the rule matches. 0 (alerts, value by default) or 1 (no alerts). If noalert is set to 1, the event continues analyzing other rules despite the rule matches.
+    - ```<rule level=0-16 >``` Specifies the level of the rule. Alerts and responses use this value.
+    - ```<rule id=1-999999>``` Specifies the ID of the rule.
+    - ```<rule maxsize=1-9999``` Specifies the maximum size of the event.
+    - ```<rule frequency=2-9999>``` Number of times the rule must match before generating an alert.
+    - ```<rule timeframe=1-99999>``` The timeframe in seconds. This option is intended to be used with the frequency option.
+    - ```<rule ignore=1-999999>``` The time (in seconds) to ignore this rule after it triggers(to avoid floods).
+    - ```<rule overwrite=yes-no>``` Used to replace a rule with local changes. To maintain consistency between loaded rules, if_sid, if_group, if_level, if_matched_sid, and if_matched_group labels are not taken into account when overwriting a rule. If any of these are encountered, the original value prevails.
+    - ```<rule noalert=0-1>``` Does not trigger an alert if the rule matches. 0 (alerts, value by default) or 1 (no alerts). If noalert is set to 1, the event continues analyzing other rules despite the rule matches.
 
 
 - ```<if_sid>``` Any rule ID. Multiple values must be separated by commas or spaces. You want to catch a more specific case only when a more general rule matched first.
 ```<if_sid>100100,100101</if_sid>``` Only consider logs that previously matched rule 100100 or 100101.
-- ```<match>``` Used as a requisite to trigger a rule. It will search for a match in the log event.
 
 ```xml
 <rule id="100110" level="5">
@@ -208,10 +207,62 @@ The rule with ID 50180 triggers a level 10 alert if rule 50125 matches 8 times w
 </rule>
 ```
 The rule 100110 is triggered when either of the parent rules has matched and the logs contain the word Error.
+- ```<match>``` Used as a requisite to trigger a rule. It will search for a match in the log event. Match and If are independent elements, each element has it's own condition.
 
-- ```<if_group>sysmon_event1</if_group>``` Used as a requisite to trigger a rule. This option matches if the log has previously matched a rule in the specified group.
+- ```<if_group>sysmon_event1</if_group>``` Any group. Used as a requisite to trigger a rule. This option matches if the log has previously matched a rule in the specified group.
 - ```<if_level>1-16</if_level>``` Matches if the level has matched before.
-- ```<if_matched_sid></if_matched_sid>``` Any rule id. Matches if an alert of the defined ID has been triggered in a set number of seconds. This option is used in conjunction with ```<frequency>``` and ```<timeframe>```.
+- ```<if_matched_sid>``` Any rule id. Matches if an alert of the defined ID has been triggered in a set number of seconds. This option is used in conjunction with ```<frequency>``` and ```<timeframe>```.
+- ```<if_matched_group>``` Any group. Matches if an alert of the defined group has been triggered in a set number of seconds. This option is used in conjunction with ```<frequency>``` and ```<timeframe>```.
+
+```xml
+<rule id="40113" level="12" frequency="8" timeframe="360">
+  <if_matched_group>virus</if_matched_group>
+  <description>Multiple viruses detected - Possible outbreak.</description>
+  <group>virus,pci_dss_5.1,pci_dss_5.2,pci_dss_11.4,gpg13_4.2,gdpr_IV_35.7.d,nist_800_53_SI.3,nist_800_53_SI.4,</group>
+</rule>
+```
+The rule will trigger when the group virus has been matched 8 times in the last 360 seconds.
+
+- ```<regex>``` Any regex, sregex or pcre2 expression. Used as a requisite to trigger a rule. It will search for a match in the log event.
+    - ```<regex negate=yes-no>``` Allows to negate the regular expression (default value = no).
+    - ```<regex type=osregex-osmatch-pcre2>``` Allows to set regular expression type (default value = osregex).
+
+```xml
+<rule id="100100" level="5">
+  <if_sid>100500</if_sid>
+  <!-- Trigger when the log does NOT contain “ERROR” -->
+  <regex negate="yes">\bERROR\b</regex>
+  <description>No “ERROR” in the log line</description>
+</rule>
+```
+```<regex negate="yes">``` inverts the test: this rule fires for any event that doesn’t have the word ERROR. Without negate, it would only match lines with ERROR.
+
+```xml
+<rule id="100001" level="3">
+  <if_sid>100500</if_sid>
+  <regex>\b(?:\d{1,3}\.){3}\d{1,3}\b</regex>
+  <description>Matches any valid IP</description>
+</rule>
+```
+If the rule 100500 is matched and the event contains any valid IPv4, the rule 100001 is triggered, generating a level 3 alert.
+
+
+- ```<category>``` Any type. Used as a requisite to trigger a rule. It will be triggered if the decoder includes the log in the specified category.
+
+```xml
+<rule id="1" level="0" noalert="1">
+  <category>syslog</category>
+  <description>Generic template for all syslog rules.</description>
+</rule>
+```
+The rule will trigger if the log message has previously been decoded by the syslog decoder. However, since the level is set to 0, the event will not be displayed on the dashboard.
+
+- ```<srcip>``` Any IP address. Used as a requisite to trigger a rule. It compares any IP address or CIDR block to an IP decoded as srcip.
+
+
+
+
+
 
 ## Create Alert + Slack
 ```sudo nano /var/ossec/etc/ossec.conf```
