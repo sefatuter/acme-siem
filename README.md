@@ -733,9 +733,6 @@ sudo ausearch -k exec_log -ts recent      # recent exec events
 sudo ausearch -k etc_changes -ts recent   # recent file changes
 ```
 
-```sudo tail -f /var/log/audit/audit.log```
-
-
 **What is Exec?**
 - Recording every time a program is started on the system (via the execve syscall).
 - Captures the exact command, user, and path of every process launch.
@@ -764,3 +761,6 @@ Making Chain:
 ```xml
 
 ```
+
+```sudo tail -f /var/log/audit/audit.log```
+```sudo passwd testuser```
