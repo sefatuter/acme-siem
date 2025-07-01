@@ -88,3 +88,52 @@
     </description>
     <group>audit,exec,suspicious_path</group>
   </rule>
+
+
+
+
+
+
+
+
+
+
+  <!--
+  <rule id="101010" level="10">
+    <if_matched_sid>101000</if_matched_sid>
+    <regex type="pcre2">exe="(?:/tmp/|/dev/shm/)</regex>
+    <description>Auditd: execution from writable directory</description>
+    <group>audit,exec,suspicious_path</group>
+  </rule>
+  -->
+  <rule id="100100" level="12">
+    <if_sid>80792</if_sid>
+    <field name="audit.exe">^/usr/bin/passwd$</field>
+    <description>
+      Critical Command Execution: The 'passwd' command was executed. 
+      Original User (AUID): $(audit.auid). 
+      Effective User (UID): $(audit.uid). 
+      Full Command: $(audit.proctitle_decoded).
+    </description>
+    <info type="cve">CVE-2021-3156,CVE-2021-23247</info> <!-- Example of mapping CVEs related to privilege escalation -->
+    <mitre>
+      <id>T1087</id>   <!-- Account Discovery -->
+      <id>T1098</id>   <!-- Account Manipulation -->
+    </mitre>
+    <group>audit,authentication_success,pci_dss_10.2.5,pci_dss_8.2.1,gpg13_4.1,gdpr_IV_30.1.g,hipaa_164.312.a.2.ii,nist_800_53_AU.2,nist_800_53_AC.2,tsc_S1.3,tsc_S3.2,</group>
+  </rule>
+  
+  <rule id="100101" level="12">
+    <if_sid>80700</if_sid>
+    <field name="audit.command" type="pcre2">^passwd(\s|$)</field>
+    <description>
+      Privilege Escalation: User '$(audit.auid)' used sudo to run the 'passwd' command. 
+      Full Command: $(audit.command).
+    </description>
+    <info type="cve">CVE-2021-3156,CVE-2021-23247</info>
+    <mitre>
+      <id>T1548.003</id> <!-- Abuse Elevation Control Mechanism: Sudo and Sudo Caching -->
+      <id>T1098</id>     <!-- Account Manipulation -->
+    </mitre>
+    <group>audit,pci_dss_10.2.7,pci_dss_10.2.2,gpg13_4.12,gdpr_IV_32.2,hipaa_164.312.b,nist_800_53_AU.2,nist_800_53_AC.3,tsc_S1.3,tsc_S3.2,privilege_escalation,</group>
+  </rule>
