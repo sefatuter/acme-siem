@@ -137,3 +137,119 @@
     </mitre>
     <group>audit,pci_dss_10.2.7,pci_dss_10.2.2,gpg13_4.12,gdpr_IV_32.2,hipaa_164.312.b,nist_800_53_AU.2,nist_800_53_AC.3,tsc_S1.3,tsc_S3.2,privilege_escalation,</group>
   </rule>
+
+
+
+
+
+
+
+
+
+
+
+
+  
+    <!--
+     Rule: 100100
+     Level: 8
+     Description: Identifies the execution of common networking tools often used for C2, data exfiltration, or reverse shells.
+     This is a foundational rule used for chaining.
+    -->
+    <rule id="100100" level="8">
+      <if_sid>80792</if_sid> <!-- Wazuh's base rule for auditd process execution -->
+      <field name="audit.exe" type="pcre2">(netcat|nc|ncat|socat|nmap)$</field>
+      <description>Suspicious Networking Tool Executed: $(audit.exe) by user $(audit.auid).</description>
+      <mitre>
+        <id>T1046</id> <!-- Network Service Scanning -->
+        <id>T1059</id> <!-- Command and Scripting Interpreter -->
+      </mitre>
+      <group>audit,pci_dss_10.2.7,gpg13_4.12,gdpr_IV_32.2,hipaa_164.312.b,nist_800_53_AU.2,tsc_S1.3,</group>
+    </rule>
+
+
+    <!--
+      Rule: 100105
+      Level: 5
+      Description: Identifies the execution of commands that can alter user accounts or permissions.
+      This is a foundational rule used for chaining.
+    -->
+    <rule id="100105" level="5">
+      <if_sid>80792</if_sid>
+      <field name="audit.exe" type="pcre2">/(passwd|useradd|usermod|userdel|groupadd|chown|chmod)$</field>
+      <description>User or Permission Management Tool Executed: $(audit.exe) by $(audit.auid).</description>
+      <mitre>
+        <id>T1098</id> <!-- Account Manipulation -->
+      </mitre>
+      <group>audit,pci_dss_10.2.5,gpg13_4.1,gdpr_IV_30.1.g,hipaa_164.312.a.2.ii,nist_800_53_AU.2,tsc_S1.3,</group>
+    </rule>
+    
+    
+    <!--
+      Rule: 100110
+      Level: 12
+      Description: Detects a potential reverse shell attempt. It looks for a networking tool (from rule 100100)
+                   being used to execute a shell (/bin/sh, /bin/bash).
+      Action: This is a critical alert that should be configured for Active Response.
+    -->
+    <rule id="100110" level="12">
+      <if_sid>100100</if_sid> <!-- Chains from our "Suspicious Networking Tool" rule -->
+      <field name="audit.proctitle_decoded" type="pcre2">-e /(bin|sh|bash)|/bin/sh -i|/bin/bash -i</field>
+      <description>CRITICAL: Potential Reverse Shell detected!
+        - Initiating User: $(audit.auid)
+        - Effective User: $(audit.uid)
+        - Process: $(audit.exe)
+        - Full Command: $(audit.proctitle_decoded)
+        - PID: $(audit.pid)
+      </description>
+      <mitre>
+        <id>T1059.004</id> <!-- Command and Scripting Interpreter: Unix Shell -->
+        <id>T1571</id>     <!-- Non-Standard Port -->
+      </mitre>
+      <group>audit,attack.execution,attack.command_and_control,pci_dss_11.4,gdpr_IV_32.2,hipaa_164.312.b,nist_800_53_AU.6,tsc_CC7.2,tsc_CC7.3,</group>
+    </rule>
+    
+    
+    <!--
+      Rule: 100120
+      Level: 12
+      Description: Detects when a sensitive command (from rule 100105) is executed with root privileges
+                   by a non-root user. This is a strong indicator of privilege escalation activity.
+    -->
+    <rule id="100120" level="12">
+      <if_sid>100105</if_sid> <!-- Chains from our "User or Permission Management" rule -->
+      <field name="audit.uid">root</field> <!-- The command ran as root -->
+      <field name="audit.auid" type="pcre2">^((?!root|0).)*$</field> <!-- But the original user was NOT root -->
+      <description>CRITICAL: Privilege Escalation using $(audit.exe).
+        - Original User: $(audit.auid)
+        - Command Executed as: $(audit.uid)
+        - Full Command: $(audit.proctitle_decoded)
+      </description>
+      <mitre>
+        <id>T1548.003</id> <!-- Abuse Elevation Control Mechanism: Sudo and Sudo Caching -->
+        <id>T1098</id>     <!-- Account Manipulation -->
+      </mitre>
+      <group>audit,privilege_escalation,pci_dss_10.2.7,gpg13_4.12,gdpr_IV_32.2,hipaa_164.312.b,nist_800_53_AU.2,tsc_S1.3,</group>
+    </rule>
+    
+    
+    <!--
+      Rule: 100130
+      Level: 13
+      Description: A critical system file, tagged with the key 'critical_file_write' in auditd, has been written to or modified.
+    -->
+    <rule id="100130" level="13">
+      <if_group>audit_fim</if_group> <!-- Wazuh's group for auditd FIM events -->
+      <field name="audit.key">critical_file_write</field>
+      <description>CRITICAL: Sensitive file was modified.
+        - File Change Key: $(audit.key)
+        - File Path: $(audit.name)
+        - Action performed by User: $(audit.auid)
+        - Process: $(audit.exe)
+      </description>
+      <mitre>
+        <id>T1222.002</id> <!-- Abusing Hidden Files and Directories -->
+        <id>T1098</id>     <!-- Account Manipulation -->
+      </mitre>
+      <group>audit,pci_dss_10.2.7,pci_dss_11.5,gpg13_4.8,gdpr_IV_32.2,hipaa_164.312.c.1,nist_800_53_SI.7,tsc_PI1.4,tsc_PI1.5,</group>
+    </rule>
