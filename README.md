@@ -756,8 +756,10 @@ Don't forget to put ```<localfile>``` block to ```nano /var/ossec/etc/ossec.conf
 Restart the agent:
 ```sudo systemctl restart wazuh-agent```
 
+Control the audit logs from dashboard: Wazuh Explore -> Discover, Add Filter -> ```location: /var/log/audit/audit.log```
 
-Making Chain:
+
+Chain rule and groups
 ```xml
 
 ```
