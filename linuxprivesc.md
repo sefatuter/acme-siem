@@ -23,6 +23,7 @@ Passwords & File Permissions Overview
 - ```history```
 
 
-Sudo
+Escalation via Sudo Shell Escaping
 
+```sudoo -l```
 ```https://gtfobins.github.io/```
