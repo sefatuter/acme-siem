@@ -14,3 +14,5 @@ Automated Tools:
 - [https://github.com/rebootuser/LinEnum](https://github.com/rebootuser/LinEnum)
 - https://github.com/The-Z-Labs/linux-exploit-suggester
 - https://github.com/sleventyeleven/linuxprivchecker
+- https://github.com/dirtycow/dirtycow.github.io
+- 
