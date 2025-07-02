@@ -21,3 +21,8 @@ Automated Tools:
 Passwords & File Permissions Overview
 
 - ```history```
+
+
+Sudo
+
+```https://gtfobins.github.io/```
