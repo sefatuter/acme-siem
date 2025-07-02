@@ -16,3 +16,8 @@ Automated Tools:
 - https://github.com/sleventyeleven/linuxprivchecker
 - https://github.com/dirtycow/dirtycow.github.io
 - 
+
+
+Passwords & File Permissions Overview
+
+- ```history```
