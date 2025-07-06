@@ -1200,6 +1200,7 @@ creating a systemd service unit:
 (soon)
 ```
 
+---
 
 **FIM Dashboard on Manager:***
 
