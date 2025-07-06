@@ -955,6 +955,11 @@ exit 0
 ```conf
   <agent_config>
     .
+    <alerts>
+      <log_alert_level>5</log_alert_level>
+      <email_alert_level>12</email_alert_level>
+    </alerts>
+    .
     ..
     .
     <syscheck>
@@ -1022,3 +1027,11 @@ exit 0
   ..
   .
 ```
+
+```systemctl restart wazuh-manager```
+
+```systemctl restart wazuh-agent```
+
+Place active response files on all agents.
+
+
