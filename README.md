@@ -1045,6 +1045,33 @@ Place active response files on all agents.
 
 **FIM Synchronization between manager and agent:***
 
+- Directories:
+
+On Agent: 
+```/var/ossec/queue/pending-changes``` where changes goes to.
+```/var/ossec/queue/baseline``` where copy of original files live.
+```/opt/fim-scripts/agent-api.py``` where dashboard scripts in.
+
+On Manager:
+```/var/ossec/queue/manager-pending``` where agents pending files.
+```/var/ossec/queue/manager-baseline``` where agents baseline files.
+
+```
+/opt/fim-desk/            # project root
+│
+├─ backend/               # Flask
+│   └─ app.py
+├─ frontend/              # React
+│   ├─ src/
+│   └─ vite.config.js
+└─ data/                  # volume mounted at run-time
+    ├─ pending/           -> symlink to /var/ossec/manager-pending
+    ├─ baseline/          -> symlink to /var/ossec/manager-baseline
+    └─ decisions.db
+```
+
+
+
 - agent-api.py on agent
 ```py
 #!/usr/bin/env python3
@@ -1098,8 +1125,8 @@ import pathlib, requests, time
 
 AGENTS = [{"name": "ubuntu-s1", "url": "http://10.128.0.11:8081"}]
 
-DEST_PENDING  = pathlib.Path("/var/ossec/integrations/pending_approval")
-DEST_BASELINE = pathlib.Path("/var/ossec/integrations/baseline")       # NEW
+DEST_PENDING  = pathlib.Path("/var/ossec/queue/manager-pending")
+DEST_BASELINE = pathlib.Path("/var/ossec/queue/manager-baseline")
 CHUNK = 8192
 
 def fetch_list(base_url, kind):
