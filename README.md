@@ -1043,4 +1043,120 @@ For testing purpose.
 
 Place active response files on all agents.
 
+**FIM Synchronization between manager and agent:***
 
+- agent-api.py on agent
+```py
+#!/usr/bin/env python3
+import os
+from flask import Flask, jsonify, send_from_directory, abort
+
+BASE_PENDING  = "/var/ossec/queue/pending-changes"
+BASE_BASELINE = "/var/ossec/queue/baseline"
+
+app = Flask(__name__)
+
+@app.route("/pending/", methods=["GET"])
+def list_pending():
+    files = [f for f in os.listdir(BASE_PENDING)
+             if os.path.isfile(os.path.join(BASE_PENDING, f))]
+    return jsonify(files)
+
+@app.route("/pending/<path:filename>", methods=["GET"])
+def download(filename):
+    # Simple safety check to block `../../../etc/passwd`
+    if "/" in filename or filename.startswith(".."):
+        abort(400)
+    return send_from_directory(BASE_PENDING, filename, as_attachment=True)
+
+# ── baseline originals ─────────────────────────────────────
+@app.route("/baseline/", methods=["GET"])
+def list_baseline():
+    # recurse because baseline may hold sub-dirs
+    out = []
+    for root, _, files in os.walk(BASE_BASELINE):
+        for f in files:
+            rel = os.path.relpath(os.path.join(root, f), BASE_BASELINE)
+            out.append(rel)
+    return jsonify(out)
+
+@app.route("/baseline/<path:filename>", methods=["GET"])
+def download_baseline(filename):
+    if filename.startswith(".."):
+        abort(400)
+    return send_from_directory(BASE_BASELINE, filename, as_attachment=True)
+
+if __name__ == "__main__":
+    # Bind to localhost only; use SSH -L 8081:localhost:8081 from the manager
+    app.run(host="0.0.0.0", port=8081)
+```
+
+- sync_manager.py on manager
+```py
+#!/usr/bin/env python3
+import pathlib, requests, time
+
+AGENTS = [{"name": "ubuntu-s1", "url": "http://10.128.0.11:8081"}]
+
+DEST_PENDING  = pathlib.Path("/var/ossec/integrations/pending_approval")
+DEST_BASELINE = pathlib.Path("/var/ossec/integrations/baseline")       # NEW
+CHUNK = 8192
+
+def fetch_list(base_url, kind):
+    return requests.get(f"{base_url}/{kind}/", timeout=10).json()
+
+def download(base_url, kind, relpath, dest_root):
+    dest = dest_root / relpath
+    dest.parent.mkdir(parents=True, exist_ok=True)
+    with requests.get(f"{base_url}/{kind}/{relpath}", stream=True, timeout=30) as r:
+        r.raise_for_status()
+        with open(dest, "wb") as fh:
+            for chunk in r.iter_content(CHUNK):
+                fh.write(chunk)
+    return dest
+
+def sync_one(agent):
+    base = agent["url"].rstrip("/")
+
+    # 1. pending diffs
+    for f in fetch_list(base, "pending"):
+        dest = DEST_PENDING / agent["name"] / f
+        if not dest.exists():
+            p = download(base, "pending", f, DEST_PENDING / agent["name"])
+            print(f"[+] {agent['name']} diff  → {p}")
+
+    # 2. baseline originals
+    for f in fetch_list(base, "baseline"):
+        dest = DEST_BASELINE / agent["name"] / f
+        if not dest.exists():
+            p = download(base, "baseline", f, DEST_BASELINE / agent["name"])
+            print(f"[+] {agent['name']} base → {p}")
+
+def main():
+    while True:
+        for a in AGENTS:
+            try:
+                sync_one(a)
+            except Exception as e:
+                print(f"[!] {a['name']}: {e}")
+        time.sleep(60)
+
+if __name__ == "__main__":
+    main()
+```
+
+**FIM Dashboard on Manager:***
+
+```
+/opt/fim-desk/            # new project root
+│
+├─ backend/               # Flask (+ SQLite)
+│   └─ app.py
+├─ frontend/              # React + Tailwind (or Vue/Svelte if you prefer)
+│   ├─ src/
+│   └─ vite.config.js
+└─ data/                  # not in Git – volume mounted at run-time
+    ├─ pending/           -> symlink to /var/ossec/integrations/pending_approval
+    ├─ baseline/          -> symlink to /var/ossec/integrations/baseline
+    └─ decisions.db       # SQLite audit log
+```
