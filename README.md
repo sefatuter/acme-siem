@@ -978,7 +978,7 @@ exit 0
   </agent_config>
 ```
 
-And manually copy the original files to baseline/ directory
+And manually copy the original files to baseline/ directory on AGENT
 
 ```cp /etc/hosts /var/ossec/queue/baseline/hosts.original```
 
