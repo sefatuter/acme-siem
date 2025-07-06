@@ -1204,6 +1204,9 @@ creating a systemd service unit:
 
 **FIM Dashboard on Manager:***
 
+
+```mkdir -p /opt/fim-desk```
+
 ```
 /opt/fim-desk/            # project root
 │
