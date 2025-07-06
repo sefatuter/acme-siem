@@ -978,6 +978,15 @@ exit 0
   </agent_config>
 ```
 
+And manually copy the original files to baseline/ directory
+
+```cp /etc/hosts /var/ossec/queue/baseline/hosts.original```
+
+```cp /home/sefatuter/test.txt /var/ossec/queue/baseline/test.txt.original```
+
+For testing purpose.
+
+
 - ossec.conf
 ```conf
   .
