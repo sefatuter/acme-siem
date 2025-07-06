@@ -1205,7 +1205,17 @@ creating a systemd service unit:
 **FIM Dashboard on Manager:***
 
 
-```mkdir -p /opt/fim-desk```
+```
+mkdir -p /opt/fim-desk
+mkdir -p /opt/fim-desk/backend
+mkdir -p /opt/fim-desk/frontend
+mkdir -p /opt/fim-desk/data
+mkdir -p /opt/fim-desk/data/pending
+mkdir -p /opt/fim-desk/data/baseline
+
+ln -s /var/ossec/queue/manager-pending         /opt/fim-desk/data/pending
+ln -s /var/ossec/queue/manager-baseline        /opt/fim-desk/data/baseline
+```
 
 ```
 /opt/fim-desk/            # project root
