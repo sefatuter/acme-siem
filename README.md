@@ -944,5 +944,81 @@ exit 0
 
 ```service wazuh-agent restart```
 
-
 ```systemctl restart wazuh-manager```
+
+
+## FIM-DESK (File Integrity Monitor)
+
+**FIM Active Response Configurations on Manager:**
+
+- agent.conf
+```conf
+  <agent_config>
+    .
+    ..
+    .
+    <syscheck>
+      <directories realtime="yes" check_all="yes" report_changes="yes">/etc</directories>
+      <directories realtime="yes" check_all="yes" report_changes="yes">/etc/hosts</directories>
+      <directories realtime="yes" check_all="yes" report_changes="yes">/home/sefatuter/test.txt</directories>
+      <ignore type="sregex">.log$|.tmp$</ignore>
+      <ignore>/etc/mtab</ignore>
+      <ignore>/etc/utmp</ignore>
+      <ignore>/etc/wtmp</ignore>
+      <ignore>/etc/btmp</ignore>
+      <ignore>/etc/lastlog</ignore>
+      <ignore>/etc/adjtime</ignore>
+      <ignore>/etc/machine-id</ignore>
+    </syscheck>
+  </agent_config>
+```
+
+- ossec.conf
+```conf
+  .
+  ..
+  .
+  <command>
+    <name>generic-file-revert</name>
+    <executable>generic-file-revert.sh</executable>
+    <timeout_allowed>no</timeout_allowed>
+  </command>
+
+  <command>
+    <name>restore-deletion</name>
+    <executable>restore-deletion.sh</executable>
+    <timeout_allowed>no</timeout_allowed>
+  </command>
+
+  <command>
+    <name>handle-file-addition</name>
+    <executable>handle-file-addition.sh</executable>
+    <timeout_allowed>no</timeout_allowed>
+  </command>
+  .
+  ..
+  .
+  <active-response>
+    <disabled>no</disabled>
+    <command>generic-file-revert</command>
+    <location>local</location>
+    <rules_id>550</rules_id>
+  </active-response>
+
+  <active-response>
+    <disabled>yes</disabled>
+    <command>restore-deletion</command>
+    <location>local</location>
+    <rules_id>553</rules_id>
+  </active-response>
+
+  <active-response>
+    <disabled>no</disabled>
+    <command>handle-file-addition</command>
+    <location>local</location>
+    <rules_id>554</rules_id>
+  </active-response>
+  .
+  ..
+  .
+```
