@@ -988,6 +988,7 @@ And manually copy the original files to baseline/ directory on AGENT
 For testing purpose.
 
 
+
 - ossec.conf
 ```conf
   .
@@ -1044,7 +1045,8 @@ For testing purpose.
 
 Place active response files on all agents.
 
-**FIM Synchronization between manager and agent:***
+
+**FIM Synchronization between manager and agent:**
 
 On Agent: 
 
