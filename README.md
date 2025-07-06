@@ -1061,7 +1061,9 @@ On Manager:
 - ```/var/ossec/queue/manager-baseline``` where agents baseline files.
 - ```/opt/fim-scripts/sync-manager.py``` where dashboard scripts in.
 
+---
 
+- agent-api.py on agent
 
 ```bash
 mkdir -p /opt/fim-scripts
@@ -1071,7 +1073,6 @@ source venv/bin/activate
 nano /opt/fim-scripts/agent-api.py
 ```
 
-- agent-api.py on agent
 ```py
 #!/usr/bin/env python3
 import os
@@ -1125,7 +1126,9 @@ creating a systemd service unit:
 (soon)
 ```
 
+---
 
+- sync-manager.py on manager
 
 ```bash
 mkdir -p /opt/fim-scripts
@@ -1135,7 +1138,6 @@ source venv/bin/activate
 nano /opt/fim-scripts/sync-manager.py
 ```
 
-- sync-manager.py on manager
 ```py
 #!/usr/bin/env python3
 import pathlib, requests, time
