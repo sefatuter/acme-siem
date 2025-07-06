@@ -1049,13 +1049,16 @@ Place active response files on all agents.
 - Directories:
 
 On Agent: 
+
 ```/var/ossec/queue/pending-changes``` where changes goes to.
 
 ```/var/ossec/queue/baseline``` where copy of original files live.
 
 ```/opt/fim-scripts/agent-api.py``` where dashboard scripts in.
 
+
 On Manager:
+
 ```/var/ossec/queue/manager-pending``` where agents pending files.
 
 ```/var/ossec/queue/manager-baseline``` where agents baseline files.
