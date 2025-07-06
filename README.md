@@ -946,6 +946,7 @@ exit 0
 
 ```systemctl restart wazuh-manager```
 
+---
 
 ## FIM-DESK (File Integrity Monitor)
 
@@ -1060,7 +1061,15 @@ On Manager:
 ```/var/ossec/queue/manager-baseline``` where agents baseline files.
 
 
-- agent-api.py on agent path: ```/opt/fim-scripts/agent-api.py```
+```bash
+mkdir -p /opt/fim-scripts
+python3 -m venv venv
+pip3 install flask
+source venv/bin/activate
+nano /opt/fim-scripts/agent-api.py
+```
+
+- agent-api.py on agent
 ```py
 #!/usr/bin/env python3
 import os
@@ -1102,7 +1111,6 @@ def download_baseline(filename):
     return send_from_directory(BASE_BASELINE, filename, as_attachment=True)
 
 if __name__ == "__main__":
-    # Bind to localhost only; use SSH -L 8081:localhost:8081 from the manager
     app.run(host="0.0.0.0", port=8081)
 ```
 
@@ -1115,7 +1123,17 @@ creating a systemd service unit:
 (soon)
 ```
 
-- sync_manager.py on manager path: ```/opt/fim-scripts/sync_manager.py```
+
+
+```bash
+mkdir -p /opt/fim-scripts
+python3 -m venv venv
+pip3 install requests
+source venv/bin/activate
+nano /opt/fim-scripts/sync-manager.py
+```
+
+- sync-manager.py on manager
 ```py
 #!/usr/bin/env python3
 import pathlib, requests, time
