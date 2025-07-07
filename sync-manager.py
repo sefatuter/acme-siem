@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 import pathlib, requests, time
-import hashlib
+import hashlib, os
 
 AGENTS = [{"name": "ubuntu-s1", "url": "http://10.128.0.11:5080"}]
 
@@ -9,7 +9,7 @@ DEST_BASELINE = pathlib.Path("/var/ossec/queue/manager-baseline")
 CHUNK = 8192
 
 LAST_SENT = {}                       # path → sha256  (lives only while script runs)
-LAST_DIGEST = {}                     # agent → baseline-digest
+LAST_DIGEST = {}          # agent → baseline-digest
 
 
 # ------------------------------------------------------------------------
@@ -44,12 +44,20 @@ def sync_one(agent):
     base_url   = agent["url"].rstrip("/")
     agent_name = agent["name"]
 
-    # 1. pull pending diffs  (unchanged)
     for f in fetch_list(base_url, "pending"):
         dest = DEST_PENDING / agent_name / f
-        if not dest.exists():
-            p = download(base_url, "pending", f, DEST_PENDING / agent_name)
-            print(f"[+] {agent_name} diff  → {p}")
+        if dest.exists():
+            continue
+
+        p = download(base_url, "pending", f, DEST_PENDING / agent_name)
+        print(f"[+] {agent_name} diff → {p}")
+
+        # 👇 **compare against baseline; delete if identical**
+        stem          = p.name.split(".modified", 1)[0] + ".original"
+        baseline_file = DEST_BASELINE / agent_name / stem
+        if baseline_file.exists() and sha256(p) == sha256(baseline_file):
+            os.remove(p)
+            print(f"[=] {agent_name} identical change → deleted {p}")
 
     # 2. pull baseline originals (only when digest changed)
     baseline_remote = []                              # ← guarantee it exists
