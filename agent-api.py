@@ -1,11 +1,25 @@
 #!/usr/bin/env python3
-import os
+import os, hashlib
 from flask import Flask, jsonify, send_from_directory, abort, request
 
 BASE_PENDING  = "/var/ossec/queue/pending-changes"
 BASE_BASELINE = "/var/ossec/queue/baseline"
 
 app = Flask(__name__)
+
+
+# ── cheap “has anything changed?” probe ────────────────────────────────
+@app.route("/baseline-digest", methods=["GET"])
+def baseline_digest():
+    h = hashlib.sha256()
+    for root, _, files in os.walk(BASE_BASELINE):
+        for f in files:
+            p  = os.path.join(root, f)
+            st = os.stat(p)
+            h.update(f.encode())
+            h.update(str(st.st_mtime_ns).encode())   # high-res mtime
+            h.update(str(st.st_size).encode())
+    return h.hexdigest()              # plaintext 64-char hash
 
 @app.route("/pending/", methods=["GET"])
 def list_pending():
@@ -27,6 +41,8 @@ def list_baseline():
     out = []
     for root, _, files in os.walk(BASE_BASELINE):
         for f in files:
+            if f.startswith("."):
+                continue
             rel = os.path.relpath(os.path.join(root, f), BASE_BASELINE)
             out.append(rel)
     return jsonify(out)
