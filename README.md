@@ -1114,7 +1114,7 @@ def download_baseline(filename):
     return send_from_directory(BASE_BASELINE, filename, as_attachment=True)
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=8081)
+    app.run(host="0.0.0.0", port=5080)
 ```
 
 - Running as a service
@@ -1142,7 +1142,7 @@ nano /opt/fim-scripts/sync-manager.py
 #!/usr/bin/env python3
 import pathlib, requests, time
 
-AGENTS = [{"name": "ubuntu-s1", "url": "http://10.128.0.11:8081"}]
+AGENTS = [{"name": "ubuntu-s1", "url": "http://10.128.0.11:5080"}]
 
 DEST_PENDING  = pathlib.Path("/var/ossec/queue/manager-pending")
 DEST_BASELINE = pathlib.Path("/var/ossec/queue/manager-baseline")
