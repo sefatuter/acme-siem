@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 import pathlib, requests, time
+import hashlib
 
 AGENTS = [{"name": "ubuntu-s1", "url": "http://10.128.0.11:5080"}]
 
@@ -7,6 +8,16 @@ DEST_PENDING  = pathlib.Path("/var/ossec/queue/manager-pending")
 DEST_BASELINE = pathlib.Path("/var/ossec/queue/manager-baseline")
 CHUNK = 8192
 
+LAST_SENT = {}                      
+
+
+# ------------------------------------------------------------------------
+def sha256(path: pathlib.Path, block=65536) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(block), b""):
+            h.update(chunk)
+    return h.hexdigest()
 
 # ---------- helpers ---------------------------------------------------------
 def fetch_list(base_url, kind):
@@ -51,7 +62,13 @@ def sync_one(agent):
     baseline_local = DEST_BASELINE / agent_name
     for path in baseline_local.rglob("*.original"):
         rel = path.relative_to(baseline_local).as_posix()
-        upload(base_url, "baseline", rel, path)   # ← always overwrite
+        cur_hash = sha256(path)
+
+        if LAST_SENT.get((agent_name, rel)) == cur_hash:
+            continue                 # identical → skip PUT
+
+        upload(base_url, "baseline", rel, path)   # overwrite when needed
+        LAST_SENT[(agent_name, rel)] = cur_hash
         print(f"[→] {agent_name} synced {rel}")
 
 def main():
@@ -61,7 +78,7 @@ def main():
                 sync_one(a)
             except Exception as e:
                 print(f"[!] {a['name']}: {e}")
-        time.sleep(60)
+        time.sleep(30)
 
 if __name__ == "__main__":
     main()
