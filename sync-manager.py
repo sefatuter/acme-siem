@@ -8,7 +8,8 @@ DEST_PENDING  = pathlib.Path("/var/ossec/queue/manager-pending")
 DEST_BASELINE = pathlib.Path("/var/ossec/queue/manager-baseline")
 CHUNK = 8192
 
-LAST_SENT = {}                      
+LAST_SENT = {}                       # path → sha256  (lives only while script runs)
+LAST_DIGEST = {}                     # agent → baseline-digest
 
 
 # ------------------------------------------------------------------------
@@ -50,25 +51,28 @@ def sync_one(agent):
             p = download(base_url, "pending", f, DEST_PENDING / agent_name)
             print(f"[+] {agent_name} diff  → {p}")
 
-    # 2. pull baseline originals  (unchanged)
-    baseline_remote = fetch_list(base_url, "baseline")
-    for f in baseline_remote:
-        dest = DEST_BASELINE / agent_name / f
-        if not dest.exists():
-            p = download(base_url, "baseline", f, DEST_BASELINE / agent_name)
-            print(f"[+] {agent_name} base → {p}")
+    # 2. pull baseline originals (only when digest changed)
+    baseline_remote = []                              # ← guarantee it exists
+    digest = requests.get(f"{base_url}/baseline-digest", timeout=5).text
+    if LAST_DIGEST.get(agent_name) != digest:
+        LAST_DIGEST[agent_name] = digest
+        baseline_remote = fetch_list(base_url, "baseline")
+        for f in baseline_remote:
+            dest = DEST_BASELINE / agent_name / f
+            if not dest.exists():
+                p = download(base_url, "baseline", f,
+                             DEST_BASELINE / agent_name)
+                print(f"[+] {agent_name} base → {p}")
 
-    # 3. **push/refresh every .original file back to the agent**
+    # 3. push/refresh .original files (upload loop) --------------------------
     baseline_local = DEST_BASELINE / agent_name
     for path in baseline_local.rglob("*.original"):
-        rel = path.relative_to(baseline_local).as_posix()
-        cur_hash = sha256(path)
-
-        if LAST_SENT.get((agent_name, rel)) == cur_hash:
-            continue                 # identical → skip PUT
-
-        upload(base_url, "baseline", rel, path)   # overwrite when needed
-        LAST_SENT[(agent_name, rel)] = cur_hash
+        rel       = path.relative_to(baseline_local).as_posix()
+        file_hash = sha256(path)
+        if LAST_SENT.get((agent_name, rel)) == file_hash:
+            continue
+        upload(base_url, "baseline", rel, path)
+        LAST_SENT[(agent_name, rel)] = file_hash
         print(f"[→] {agent_name} synced {rel}")
 
 def main():
