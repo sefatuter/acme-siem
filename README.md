@@ -1222,9 +1222,9 @@ ln -s /var/ossec/queue/manager-baseline        /opt/fim-desk/data/baseline
 │
 ├─ backend/               # Flask
 │   └─ app.py
-├─ frontend/              # React
-│   ├─ src/
-│   └─ vite.config.js
+├─ frontend/              # 
+│   ├─ 
+│   └─ 
 └─ data/                  # volume mounted at run-time
     ├─ pending/           -> symlink to /var/ossec/manager-pending
     ├─ baseline/          -> symlink to /var/ossec/manager-baseline
