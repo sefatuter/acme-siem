@@ -2,6 +2,13 @@
 <group name="custom_high_priority">
 
   <!-- Remote Code Execution Detection Rules -->
+  <!-- 
+  Bu rulelar tetiklendiğinde çalışacak komutlar belirlenecek, aynı komutların önceden çalıştırılmış orijinal halleri baseline olarak tutulacak. 
+  arayüzde de tetiklenme sonrası çalıştırılan komut çıktıları ve baseline karşılaştırılması yapılacak.
+  
+   The commands that will be executed when triggered will be determined, and the original executed versions of the same commands will be kept as baselines. 
+  In the dashboard, the output of the commands executed after the trigger and the baseline will be compared.
+  -->
   
   <!-- Rule 100001: Web-based RCE attempts via command injection -->
   <rule id="100001" level="12">
