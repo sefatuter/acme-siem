@@ -548,3 +548,92 @@
     </rule>
     
 </group>
+
+
+<!-- Linux Compromise Detection -->
+
+<rule id="100422" level="8">
+  <if_sid>530</if_sid>
+  <field name="dst_port">22|80|443</field>
+  <field name="frequency">high</field>
+  <description>High frequency connections to common ports</description>
+  <group>network_anomaly,potential_scan</group>
+</rule>
+
+<rule id="100411" level="10">
+  <if_sid>530</if_sid>
+  <field name="cwd">/tmp|/var/tmp|/dev/shm</field>
+  <description>Process running from temporary directory</description>
+  <group>suspicious_process,temp_execution</group>
+</rule>
+
+<rule id="100410" level="8">
+  <if_sid>530</if_sid>
+  <field name="cpu_usage">^[89][0-9]|^9[0-9]</field>
+  <description>Process consuming excessive CPU resources</description>
+  <group>resource_abuse,suspicious_process</group>
+</rule>
+
+
+<rule id="100431" level="8">
+  <if_sid>550</if_sid>
+  <field name="file">/tmp|/var/tmp|/dev/shm</field>
+  <field name="operation">CREATE</field>
+  <description>New file created in temporary directory</description>
+  <group>file_integrity,temp_file</group>
+</rule>
+
+<rule id="100430" level="10">
+  <if_sid>550</if_sid>
+  <field name="file">/bin/|/sbin/|/usr/bin/|/usr/sbin/</field>
+  <field name="operation">WRITE</field>
+  <description>Critical system binary modified</description>
+  <group>file_integrity,system_binary</group>
+</rule>
+
+<rule id="100432" level="12">
+  <if_sid>550</if_sid>
+  <field name="file">/etc/passwd|/etc/shadow|/etc/sudoers</field>
+  <field name="operation">WRITE</field>
+  <description>Critical system file modified</description>
+  <group>file_integrity,system_config</group>
+</rule>
+
+<rule id="101530" level="10">
+  <field name="file">^/etc/shadow$</field>
+  <field name="operation">READ</field>
+  <description>Shadow file read outside normal tools</description>
+  <group>file_access,credentials</group>
+</rule>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
