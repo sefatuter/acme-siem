@@ -1,22 +1,5 @@
 <!-- Custom High Priority Security Rules for RCE and Critical Attacks -->
 <group name="custom_high_priority">
-
-  <!-- Remote Code Execution Detection Rules -->
-  <!-- 
-  Bu rulelar tetiklendiğinde çalışacak komutlar belirlenecek, aynı komutların önceden çalıştırılmış orijinal halleri baseline olarak tutulacak. 
-  arayüzde de tetiklenme sonrası çalıştırılan komut çıktıları ve baseline karşılaştırılması yapılacak. 
-  
-  Slack'e gelen alert ile collect data butonu olacak bu butona basıldığında
-  spesifik olarak hangi alert için basılmışsa o alerte ait active response çalıştıktan sonra o active responsun çalıştırdığı komutların çıktısı ile baseline olanlar dashboardda karşılaştırılacak.
-  
-  ================
-  
-   The commands that will be executed when triggered will be determined, and the original executed versions of the same commands will be kept as baselines. 
-  In the dashboard, the output of the commands executed after the trigger and the baseline will be compared.
-  
-   There will be a collect data button with the alert that comes to Slack. When this button is pressed, the active response of that alert will be compared with the output of the commands
-  run by that active response and the baseline ones will be compared on the dashboard.
-  -->
   
   <!-- Rule 100001: Web-based RCE attempts via command injection -->
   <rule id="100001" level="12">
@@ -564,8 +547,24 @@
     
 </group>
 
-
 <!-- Linux Compromise Detection -->
+
+<!-- Remote Code Execution Detection Rules -->
+<!-- 
+  Bu rulelar tetiklendiğinde çalışacak komutlar belirlenecek, aynı komutların önceden çalıştırılmış orijinal halleri baseline olarak tutulacak. 
+  arayüzde de tetiklenme sonrası çalıştırılan komut çıktıları ve baseline karşılaştırılması yapılacak. 
+  
+  Slack'e gelen alert ile collect data butonu olacak bu butona basıldığında
+  spesifik olarak hangi alert için basılmışsa o alerte ait active response çalıştıktan sonra o active responsun çalıştırdığı komutların çıktısı ile baseline olanlar dashboardda karşılaştırılacak.
+  
+  ================
+  
+   The commands that will be executed when triggered will be determined, and the original executed versions of the same commands will be kept as baselines. 
+  In the dashboard, the output of the commands executed after the trigger and the baseline will be compared.
+  
+   There will be a collect data button with the alert that comes to Slack. When this button is pressed, the active response of that alert will be compared with the output of the commands
+  run by that active response and the baseline ones will be compared on the dashboard.
+-->
 
 <rule id="100422" level="8">
   <if_sid>530</if_sid>
@@ -604,35 +603,3 @@
   <description>Shadow file read outside normal tools</description>
   <group>file_access,credentials</group>
 </rule>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
