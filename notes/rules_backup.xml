@@ -574,12 +574,25 @@
   <group>network_anomaly,potential_scan</group>
 </rule>
 
+<!-- -->
+
 <rule id="100411" level="10">
   <if_sid>530</if_sid>
   <field name="cwd">/tmp|/var/tmp|/dev/shm</field>
   <description>Process running from temporary directory</description>
   <group>suspicious_process,temp_execution</group>
 </rule>
+
+<!-- UPDATED -->
+<rule id="100150" level="10">
+  <if_sid>550</if_sid>    
+  <field name="file" type="pcre2">^/tmp/.*</field>
+  <field name="perm" type="pcre2">^[r-][w-][x-][r-][w-][x-][r-][w-][x-]$</field>
+  <field name="file" type="pcre2">\.(sh|py|pl|rb|php|bin|exe|run|out)$|^[^.]*$</field>
+  <description>FIM: Executable file detected in temporary directory: $(file)</description>
+</rule>
+
+<!-- -->
 
 <rule id="100410" level="8">
   <if_sid>530</if_sid>
