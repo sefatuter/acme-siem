@@ -1232,3 +1232,6 @@ ln -s /var/ossec/queue/manager-baseline        /opt/fim-desk/data/baseline
     └─ decisions.db
 ```
 
+
+
+```ls -alR /proc/*/exe 2> /dev/null | grep deleted```
