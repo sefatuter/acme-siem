@@ -575,22 +575,6 @@
 </rule>
 
 
-<rule id="100431" level="8">
-  <if_sid>550</if_sid>
-  <field name="file">/tmp|/var/tmp|/dev/shm</field>
-  <field name="operation">CREATE</field>
-  <description>New file created in temporary directory</description>
-  <group>file_integrity,temp_file</group>
-</rule>
-
-<rule id="100430" level="10">
-  <if_sid>550</if_sid>
-  <field name="file">/bin/|/sbin/|/usr/bin/|/usr/sbin/</field>
-  <field name="operation">WRITE</field>
-  <description>Critical system binary modified</description>
-  <group>file_integrity,system_binary</group>
-</rule>
-
 <rule id="100432" level="12">
   <if_sid>550</if_sid>
   <field name="file">/etc/passwd|/etc/shadow|/etc/sudoers</field>
