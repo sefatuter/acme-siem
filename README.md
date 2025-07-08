@@ -975,6 +975,7 @@ exit 0
       <ignore>/etc/lastlog</ignore>
       <ignore>/etc/adjtime</ignore>
       <ignore>/etc/machine-id</ignore>
+      <ignore type="sregex">\.dpkg-new$</ignore>
     </syscheck>
   </agent_config>
 ```
