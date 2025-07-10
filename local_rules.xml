@@ -1,24 +1,18 @@
 <!-- Modify it at your will. -->
 
 <group name="commands">
-    <rule id="100001" level="0">
-        <location>command_ps-list</location>
-        <description>List of running process.</description>
-        <group>process_monitor</group>
-    </rule>
-    
-    <rule id="100002" level="10">
-        <if_sid>100001</if_sid>
-        <if_group>process_monitor</if_group>
-        <regex>bash -i</regex>
-        <description>Reverse shell detected.</description>
-        <group>process_monitor,attacks</group>
-    </rule>
-    
-     <!-- 
-    Rule to confirm successful process termination via active response.
-    This creates a Level 12 alert in the dashboard.
-  -->
+  <rule id="100001" level="0">
+    <location>command_ps-list</location>
+    <description>List of running process.</description>
+    <group>process_monitor</group>
+  </rule>
+  <rule id="100002" level="10">
+    <if_sid>100001</if_sid>
+    <if_group>process_monitor</if_group>
+    <regex>bash -i</regex>
+    <description>Reverse shell detected.</description>
+    <group>process_monitor,attacks</group>
+  </rule>
   <rule id="100003" level="12">
     <match>AR_CONFIRMATION: SCRIPT=close-port.sh</match>
     <regex>STATUS=success PID=(\d+)</regex>
@@ -27,15 +21,7 @@
   </rule>
 
 
-  <rule id="100150" level="10">
-    <if_sid>550</if_sid>    
-    <field name="file" type="pcre2">^/tmp/.*</field>
-    <field name="perm" type="pcre2">^[r-][w-][x-][r-][w-][x-][r-][w-][x-]$</field>
-    <field name="file" type="pcre2">\.(sh|py|pl|rb|php|bin|exe|run|out)$|^[^.]*$</field>
-    <description>FIM: Executable file detected in temporary directory: $(file)</description>
-  </rule>
-  
-  
+<!-- done -->  
 <rule id="100432" level="12">
   <if_sid>550</if_sid>
   <field name="file">/etc/passwd|/etc/shadow|/etc/sudoers</field>
@@ -44,30 +30,48 @@
 </rule>
 
 
-
 <rule id="100620" level="10">
   <!-- Match auditd syscall events -->
   <if_sid>80792</if_sid>
-  
   <field name="audit.file.name" type="pcre2">\/etc\/(shadow|gshadow|passwd|sudoers|group|security|pam.d)</field>
-  
   <description>🔒 Sensitive authentication file access: $(audit.file.name) by $(audit.exe) (user: $(audit.uid))</description>
   <group>auditd,filesystem,authentication,sensitive_files</group>
 </rule>
 
 
+<rule id="100150" level="10">
+  <if_sid>550</if_sid>    
+  <field name="file" type="pcre2">^/tmp/.*</field>
+  <field name="perm" type="pcre2">^[r-][w-][x-][r-][w-][x-][r-][w-][x-]$</field>
+  <field name="file" type="pcre2">\.(sh|py|pl|rb|php|bin|exe|run|out)$|^[^.]*$</field>
+  <description>FIM: Executable file detected in temporary directory: $(file)</description>
+</rule>
+  
 
 <rule id="100409" level="3">
   <location>command_cpu-monitor</location>
   <description>CPU monitoring command output.</description>
   <group>cpu_monitor</group>
 </rule>
-
 <rule id="100410" level="10">
   <if_sid>100409</if_sid>
   <if_group>cpu_monitor</if_group>
   <regex type="pcre2">^(?:8\d(?:\.\d+)?|9\d(?:\.\d+)?|\d{3,}(?:\.\d+)?)</regex>
   <description>Process consuming excessive CPU resources $(cpu_usage)</description>
+</rule>
+
+
+<rule id="100500" level="3">
+  <location>command_port-monitor</location>
+  <description>Port monitoring command output.</description>
+  <group>port_monitor</group>
+</rule>
+<rule id="100501" level="10">
+  <if_sid></if_sid>
+  <if_group>port_monitor</if_group>
+  <regex type="pcre2" negate="yes">:(22|80|443|53|25|110|143|993|995|21|20|23|3389|5432|3306|6379|11211|8080|8443|9200|9300|5601|1514|1515|1516|55000)(\s|$)</regex>
+  <description>Excluded common port: $(regex_match_1)</description>
+  <group>port_monitor</group>
 </rule>
 
 
