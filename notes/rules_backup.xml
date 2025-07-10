@@ -593,12 +593,37 @@
 <!-- -->
 
 
+<!-- -->
 <rule id="100410" level="8">
   <if_sid>530</if_sid>
   <field name="cpu_usage">^[89][0-9]|^9[0-9]</field>
   <description>Process consuming excessive CPU resources</description>
   <group>resource_abuse,suspicious_process</group>
 </rule>
+
+<!-- WODLE agent.conf -->
+    <wodle name="command">
+      <disabled>no</disabled>
+      <tag>cpu-monitor</tag>
+      <command>ps -eo %cpu,comm,user,pid</command>
+      <interval>10s</interval>
+      <run_on_start>yes</run_on_start>
+      <ignore_output>no</ignore_output>
+    </wodle>
+<!-- UPDATED -->
+<rule id="100409" level="3">
+  <location>command_cpu-monitor</location>
+  <description>CPU monitoring command output.</description>
+  <group>cpu_monitor</group>
+</rule>
+
+<rule id="100410" level="10">
+  <if_sid>100409</if_sid>
+  <if_group>cpu_monitor</if_group>
+  <regex type="pcre2">^([4-9]\.\d+|[1-9]\d+\.\d+)</regex>
+  <description>Process consuming excessive CPU resources $(cpu_usage)</description>
+</rule>
+<!-- -->
 
 
 <!-- -->
