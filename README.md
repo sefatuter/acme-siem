@@ -1236,3 +1236,5 @@ ln -s /var/ossec/queue/manager-baseline        /opt/fim-desk/data/baseline
 ```timeout 60s yes > /dev/null```
 
 ```ls -alR /proc/*/exe 2> /dev/null | grep deleted```
+
+```tail -F /var/ossec/logs/ossec.log | grep rule100489-collector```
