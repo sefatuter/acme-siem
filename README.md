@@ -1232,6 +1232,16 @@ ln -s /var/ossec/queue/manager-baseline        /opt/fim-desk/data/baseline
     └─ decisions.db
 ```
 
+Quick setup checklist:
+
+- Install rsync on both boxes if missing
+
+```sudo apt-get install -y rsync```
+
+- Copy the manager’s SSH key to the agent(s)
+
+```ssh-copy-id root@10.128.0.11```
+
 
 ```timeout 60s yes > /dev/null```
 
