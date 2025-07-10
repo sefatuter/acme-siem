@@ -629,7 +629,6 @@
 </rule>
 
 <!-- UPDATED -->
-
 <rule id="100620" level="10">
   <!-- Match auditd syscall events -->
   <if_sid>80700</if_sid>
