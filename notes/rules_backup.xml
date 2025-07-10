@@ -642,13 +642,23 @@
 <!-- 
 nano /etc/audit/rules.d/30-auth-read.rules
 
--a always,exit -F arch=b64 -F path=/etc/passwd  -F exe=/usr/bin/cat -F perm=r -F auid>=1000 -F auid!=4294967295 -k auth_read
--a always,exit -F arch=b64 -F path=/etc/shadow  -F exe=/usr/bin/cat -F perm=r -F auid>=1000 -F auid!=4294967295 -k auth_read
--a always,exit -F arch=b64 -F path=/etc/sudoers  -F exe=/usr/bin/cat -F perm=r -F auid>=1000 -F auid!=4294967295 -k auth_read
--a always,exit -F arch=b64 -F path=/etc/gshadow  -F exe=/usr/bin/cat -F perm=r -F auid>=1000 -F auid!=4294967295 -k auth_read
--a always,exit -F arch=b64 -F path=/etc/group  -F exe=/usr/bin/cat -F perm=r -F auid>=1000 -F auid!=4294967295 -k auth_read
--a always,exit -F arch=b64 -F path=/etc/security  -F exe=/usr/bin/cat -F perm=r -F auid>=1000 -F auid!=4294967295 -k auth_read
--a always,exit -F arch=b64 -F path=/etc/pam.d  -F exe=/usr/bin/cat -F perm=r -F auid>=1000 -F auid!=4294967295 -k auth_read
+
+## This file contains rules to monitor access to sensitive authentication files and directories.
+## These rules log any read, write, or attribute change access by regular users (auid>=1000).
+
+## Monitor critical authentication FILES using syscall (-a) rules.
+## We use "perm=rwa" to audit read, write, and attribute change events.
+-a always,exit -F arch=b64 -F path=/etc/passwd -F perm=rwa -F auid>=1000 -F auid!=-1 -k auth_read
+-a always,exit -F arch=b64 -F path=/etc/shadow -F perm=rwa -F auid>=1000 -F auid!=-1 -k auth_read
+-a always,exit -F arch=b64 -F path=/etc/gshadow -F perm=rwa -F auid>=1000 -F auid!=-1 -k auth_read
+-a always,exit -F arch=b64 -F path=/etc/sudoers -F perm=rwa -F auid>=1000 -F auid!=-1 -k auth_read
+-a always,exit -F arch=b64 -F path=/etc/group -F perm=rwa -F auid>=1000 -F auid!=-1 -k auth_read
+
+## Monitor critical authentication DIRECTORIES using watch (-w) rules.
+## The -w syntax recursively monitors all files and subdirectories within the given path.
+-w /etc/security/ -p rwa -k auth_read -F auid>=1000 -F auid!=-1
+-w /etc/pam.d/ -p rwa -k auth_read -F auid>=1000 -F auid!=-1
+
 
 systemctl restart auditd
 -->
