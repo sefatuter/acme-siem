@@ -620,9 +620,35 @@
 <!-- -->
 
 
+<!-- -->
 <rule id="101530" level="10">
   <field name="file">^/etc/shadow$</field>
   <field name="operation">READ</field>
   <description>Shadow file read outside normal tools</description>
   <group>file_access,credentials</group>
 </rule>
+
+<!-- UPDATED -->
+
+<rule id="100620" level="10">
+  <!-- Match auditd syscall events -->
+  <if_sid>80700</if_sid>
+  
+  <field name="audit.file.name" type="pcre2">\/etc\/(shadow|gshadow|passwd|sudoers|group|security|pam.d)</field>
+  
+  <description>🔒 Sensitive authentication file access: $(audit.file.name) by $(audit.exe) (user: $(audit.uid))</description>
+  <group>auditd,filesystem,authentication,sensitive_files</group>
+</rule>
+<!-- 
+nano /etc/audit/rules.d/30-auth-read.rules
+
+-a always,exit -F arch=b64 -F path=/etc/passwd  -F exe=/usr/bin/cat -F perm=r -F auid>=1000 -F auid!=4294967295 -k auth_read
+-a always,exit -F arch=b64 -F path=/etc/shadow  -F exe=/usr/bin/cat -F perm=r -F auid>=1000 -F auid!=4294967295 -k auth_read
+-a always,exit -F arch=b64 -F path=/etc/sudoers  -F exe=/usr/bin/cat -F perm=r -F auid>=1000 -F auid!=4294967295 -k auth_read
+-a always,exit -F arch=b64 -F path=/etc/gshadow  -F exe=/usr/bin/cat -F perm=r -F auid>=1000 -F auid!=4294967295 -k auth_read
+-a always,exit -F arch=b64 -F path=/etc/group  -F exe=/usr/bin/cat -F perm=r -F auid>=1000 -F auid!=4294967295 -k auth_read
+-a always,exit -F arch=b64 -F path=/etc/security  -F exe=/usr/bin/cat -F perm=r -F auid>=1000 -F auid!=4294967295 -k auth_read
+-a always,exit -F arch=b64 -F path=/etc/pam.d  -F exe=/usr/bin/cat -F perm=r -F auid>=1000 -F auid!=4294967295 -k auth_read
+
+systemctl restart auditd
+-->
