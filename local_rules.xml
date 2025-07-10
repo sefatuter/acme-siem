@@ -30,15 +30,6 @@
 </rule>
 
 
-<rule id="100620" level="10">
-  <!-- Match auditd syscall events -->
-  <if_sid>80792</if_sid>
-  <field name="audit.file.name" type="pcre2">\/etc\/(shadow|gshadow|passwd|sudoers|group|security|pam.d)</field>
-  <description>🔒 Sensitive authentication file access: $(audit.file.name) by $(audit.exe) (user: $(audit.uid))</description>
-  <group>auditd,filesystem,authentication,sensitive_files</group>
-</rule>
-
-
 <rule id="100150" level="10">
   <if_sid>550</if_sid>    
   <field name="file" type="pcre2">^/tmp/.*</field>
@@ -46,7 +37,7 @@
   <field name="file" type="pcre2">\.(sh|py|pl|rb|php|bin|exe|run|out)$|^[^.]*$</field>
   <description>FIM: Executable file detected in temporary directory: $(file)</description>
 </rule>
-  
+
 
 <rule id="100409" level="3">
   <location>command_cpu-monitor</location>
@@ -58,6 +49,15 @@
   <if_group>cpu_monitor</if_group>
   <regex type="pcre2">^(?:8\d(?:\.\d+)?|9\d(?:\.\d+)?|\d{3,}(?:\.\d+)?)</regex>
   <description>Process consuming excessive CPU resources $(cpu_usage)</description>
+</rule>
+
+
+<rule id="100620" level="10">
+  <!-- Match auditd syscall events -->
+  <if_sid></if_sid> <!-- 80700 -->
+  <field name="audit.file.name" type="pcre2">\/etc\/(shadow|gshadow|passwd|sudoers|group|security|pam.d)</field>
+  <description>🔒 Sensitive authentication file access: $(audit.file.name) by $(audit.exe) (user: $(audit.uid))</description>
+  <group>auditd,filesystem,authentication,sensitive_files</group>
 </rule>
 
 
