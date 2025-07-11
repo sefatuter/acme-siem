@@ -1248,3 +1248,11 @@ Quick setup checklist:
 ```ls -alR /proc/*/exe 2> /dev/null | grep deleted```
 
 ```tail -F /var/ossec/logs/ossec.log | grep rule100489-collector```
+
+Manager-sync.py : ```/opt/fim-scripts/manager-sync.py```
+
+On agent:
+
+Interval file recordings path: ```/var/ossec/baselines/${RULE_DIR}```
+
+Active-response savings path: ```/var/ossec/active-response/tmp/${RULE_DIR}/current_```
