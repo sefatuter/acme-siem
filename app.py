@@ -1,107 +1,81 @@
-from flask import Flask, render_template_string, abort, url_for
-import difflib
-from pathlib import Path
-
-""" Tiny FIM-desk viewer --------------------------------------------------
-Run → python app.py   (after you `pip install flask`)
-• Baseline → /home/afnesia/fim-desk/data/baseline/manager-baseline/ubuntu-s1
-• Pending  → /home/afnesia/fim-desk/data/pending/manager-pending/ubuntu-s1
-Lists baseline snapshots, shows matching pending versions, and renders a
-side-by-side diff with color-coded additions/changes/deletions (GitHub-like).
+#!/usr/bin/env python3
 """
+Rule-aware diff dashboard for Wazuh FIM baseline vs. current copies.
+Start:  python3 diff_dashboard.py
+Browse: http://127.0.0.1:5081
+"""
+from flask import Flask, render_template, abort, url_for
+from pathlib import Path
+import difflib, os
 
-# ── Configuration ───────────────────────────────────────────────────────
-BASE_DIR      = Path("/home/afnesia/fim-desk/data")
-BASELINE_DIR  = BASE_DIR / "baseline/manager-baseline/ubuntu-s1"
-PENDING_DIR   = BASE_DIR / "pending/manager-pending/ubuntu-s1"
+BASELINE_ROOT = Path("/var/ossec/baselines")
+CURRENT_ROOT  = Path("/var/ossec/active-response/tmp")
+PORT = 5081
 
-# ── Flask App ───────────────────────────────────────────────────────────
 app = Flask(__name__)
 
-# ── Helpers ─────────────────────────────────────────────────────────────
+# ── helpers ─────────────────────────────────────────────────────────────
+def rule_dirs():
+    """Return set of rule-IDs that exist in both roots."""
+    bl = {p.name for p in BASELINE_ROOT.iterdir() if p.is_dir()}
+    cu = {p.name for p in CURRENT_ROOT.iterdir() if p.is_dir()}
+    return sorted(bl & cu)
 
-def files_in(dir_: Path, pattern: str):
-    return sorted(f.name for f in dir_.glob(pattern)) if dir_.is_dir() else []
+def get_pairs(rule_id):
+    """Return list of (logical_name, baseline_path, current_path)"""
+    base_dir = BASELINE_ROOT / rule_id
+    cur_dir  = CURRENT_ROOT  / rule_id
+    if not (base_dir.is_dir() and cur_dir.is_dir()):
+        return []
+    pairs = []
+    for cur in cur_dir.glob("current_*"):
+        logical = cur.name.removeprefix("current_")
+        base = base_dir / logical
+        if base.exists():
+            pairs.append((logical, base, cur))
+    return pairs
 
-# ── Routes ──────────────────────────────────────────────────────────────
+def file_changed(baseline: Path, current: Path) -> bool:
+    return baseline.read_bytes() != current.read_bytes()
 
+def html_diff(baseline: Path, current: Path) -> str:
+    with baseline.open() as f1, current.open() as f2:
+        tbl = difflib.HtmlDiff(tabsize=4, wrapcolumn=120).make_table(
+            f1.readlines(), f2.readlines(),
+            fromdesc=f"Baseline ({baseline.name})",
+            todesc=f"Current ({current.name})",
+            context=True, numlines=5
+        )
+    return tbl
+
+
+# ── routes ──────────────────────────────────────────────────────────────
 @app.route("/")
-def index():
-    baselines = files_in(BASELINE_DIR, "*.original")
-    return render_template_string(
-        """
-        <h2>Baseline files</h2>
-        {% if baselines %}
-            <ul>
-            {% for f in baselines %}
-                <li>{{ f }} – <a href="{{ url_for('pending', name=f) }}">pending versions</a></li>
-            {% endfor %}
-            </ul>
-        {% else %}
-            <p style="color:crimson">⚠️ No baseline files found under {{ BASELINE_DIR }}.</p>
-        {% endif %}
-        """,
-        baselines=baselines,
-        BASELINE_DIR=BASELINE_DIR,
-    )
+def root():
+    return render_template("root.html", rules=rule_dirs())
 
+@app.route("/<rid>/")
+def rule_index(rid):
+    pairs = get_pairs(rid)
+    if not pairs:
+        abort(404, "rule ID not found")
+    data = [(n, file_changed(b, c)) for n, b, c in pairs]
+    return render_template("rule.html", rid=rid, files=data)
 
-@app.route("/pending/<path:name>")
-def pending(name):
-    stem = name.replace(".original", "")
-    pendings = files_in(PENDING_DIR, f"{stem}.modified.*")
-    return render_template_string(
-        """
-        <h2>Pending versions of {{ name }}</h2>
-        {% if pendings %}
-            <ul>
-            {% for p in pendings %}
-                <li>{{ p }} – <a href="{{ url_for('diff_view', original=name, updated=p) }}">diff</a></li>
-            {% endfor %}
-            </ul>
-        {% else %}
-            <p style="color:crimson">⚠️ No pending versions under {{ PENDING_DIR }}.</p>
-        {% endif %}
-        <hr><a href="/">← Back</a>
-        """,
-        name=name,
-        pendings=pendings,
-        PENDING_DIR=PENDING_DIR,
-    )
+@app.route("/<rid>/diff/<logical>")
+def show_diff(rid, logical):
+    base = BASELINE_ROOT / rid / logical
+    cur  = CURRENT_ROOT  / rid / f"current_{logical}"
+    if not (base.exists() and cur.exists()):
+        abort(404, "file pair not found")
+    return render_template("diff.html",
+                                  rid=rid, logical=logical,
+                                  table=html_diff(base, cur))
 
-
-@app.route("/diff/<path:original>/<path:updated>")
-def diff_view(original, updated):
-    base = (BASELINE_DIR / original).read_text().splitlines()
-    new  = (PENDING_DIR / updated).read_text().splitlines()
-
-    diff_html = difflib.HtmlDiff(wrapcolumn=120).make_table(
-        base,
-        new,
-        fromdesc=original,
-        todesc=updated,
-    )
-
-    return render_template_string(
-        """
-        <style>
-            table.diff {font-family: monospace; border-collapse: collapse;}
-            .diff_header {background:#e0e0e0;}
-            .diff_next   {background:#f6f6f6;}
-            .diff_add    {background:#d4fcdc;}
-            .diff_sub    {background:#ffd7d7;}
-            .diff_chg    {background:#fff7b1;}
-            td {padding:2px 6px;}
-        </style>
-        <h2>Diff <small>{{ original }} → {{ updated }}</small></h2>
-        {{ diff|safe }}
-        <hr><a href="{{ url_for('pending', name=original) }}">← Back to pending list</a>
-        """,
-        diff=diff_html,
-        original=original,
-        updated=updated,
-    )
-
-# ── Run ─────────────────────────────────────────────────────────────────
+# ── main ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5081, debug=True)
+    if not (BASELINE_ROOT.is_dir() and CURRENT_ROOT.is_dir()):
+        print("ERROR: baseline or current root missing.")
+        os._exit(1)
+    print(f"Serving diff dashboard on http://127.0.0.1:{PORT}/ …")
+    app.run(host="0.0.0.0", port=PORT)
