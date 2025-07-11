@@ -1253,6 +1253,8 @@ Manager-sync.py : ```/opt/fim-scripts/manager-sync.py```
 
 On agent:
 
+wodle scripts path: ```/var/ossec/custom/bin/collect_{rule_id}.sh ```
+
 Interval file recordings path: ```/var/ossec/baselines/${RULE_DIR}```
 
 Active-response savings path: ```/var/ossec/active-response/tmp/${RULE_DIR}/current_```
