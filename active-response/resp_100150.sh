@@ -14,6 +14,7 @@ declare -A CMD_MAP=(
   [find-tmp-new]="find /tmp -xdev -type f -mtime -1 -ls | sort -k10,11"
   [procs-from-tmp]="ls -alR /proc/*/cwd 2>/dev/null | grep '/tmp' | head -n 100"
   [auth-last20]="last -n 20"
+  [tmp-files]="ls /tmp/"
 )
 
 # ── collect outputs (overwrite each alert; diff-viewer picks latest) ────
