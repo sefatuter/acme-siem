@@ -1,0 +1,207 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Wazuh FIM – Rules</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #4f81c7 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 25px;
+            box-shadow: 0 25px 50px rgba(30, 60, 114, 0.3);
+            padding: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h2 {
+            color: #1a365d;
+            font-size: 2.5rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 2rem;
+            background: linear-gradient(135deg, #1e3c72, #2a5298, #4f81c7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        ul {
+            list-style: none;
+            display: grid;
+            gap: 1rem;
+        }
+        
+        li {
+            background: white;
+            border-radius: 15px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(30, 60, 114, 0.1);
+            overflow: hidden;
+        }
+        
+        li:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 15px 35px rgba(30, 60, 114, 0.2);
+            border-color: #4f81c7;
+        }
+        
+        .rule-link {
+            display: block;
+            padding: 1.5rem 2rem;
+            color: #2d3748;
+            text-decoration: none;
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .rule-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(79, 129, 199, 0.1), transparent);
+            transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .rule-link:hover::before {
+            left: 100%;
+        }
+        
+        .rule-link:hover {
+            color: #1e3c72;
+            background: linear-gradient(135deg, rgba(30, 60, 114, 0.05), rgba(79, 129, 199, 0.05));
+        }
+        
+        .rule-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+        
+        .rule-id {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #1e3c72;
+        }
+        
+        .rule-level {
+            background: linear-gradient(135deg, #1e3c72, #4f81c7);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+        }
+        
+        .rule-description {
+            color: #4a5568;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            margin-bottom: 0.5rem;
+        }
+        
+        .rule-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #718096;
+        }
+        
+        .rule-group {
+            background: rgba(30, 60, 114, 0.1);
+            color: #1e3c72;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+        
+        .rule-timestamp {
+            font-style: italic;
+        }
+        
+        .no-rules {
+            text-align: center;
+            color: #718096;
+            font-style: italic;
+            padding: 2rem;
+            background: rgba(30, 60, 114, 0.05);
+            border-radius: 15px;
+            border: 2px dashed rgba(30, 60, 114, 0.3);
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+            
+            .container {
+                padding: 2rem;
+                border-radius: 20px;
+            }
+            
+            h2 {
+                font-size: 2rem;
+            }
+            
+            .rule-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .rule-meta {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.25rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Available rule IDs</h2>
+        <ul>
+        {% for rule_id, metadata in rules_with_metadata %}
+          <li>
+            <a href="{{ url_for('rule_index', rid=rule_id) }}" class="rule-link">
+              <div class="rule-header">
+                <span class="rule-id">Rule {{ rule_id }}</span>
+                <span class="rule-level">Level {{ metadata.level }}</span>
+              </div>
+              <div class="rule-description">{{ metadata.description }}</div>
+              <div class="rule-meta">
+                <span class="rule-group">{{ metadata.group }}</span>
+                <span class="rule-timestamp">{{ metadata.timestamp }}</span>
+              </div>
+            </a>
+          </li>
+        {% else %}
+          <li class="no-rules">No rule directories found.</li>
+        {% endfor %}
+        </ul>
+    </div>
+</body>
+</html>
