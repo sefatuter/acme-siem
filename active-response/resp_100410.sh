@@ -20,7 +20,7 @@ established-conns|ss -tanp state established | head -n 50
 world-writable-dirs|find / -type d -perm -0002 -maxdepth 2 2>/dev/null | head -n 200
 uid0-users|awk -F: '(\$3==0){print}' /etc/passwd
 cron-system|systemctl list-timers --all --no-pager
-cron-all-users|for u in \$(cut -d: -f1 /etc/passwd); do echo \"# \$u\"; crontab -u \"\$u\" -l 2>/dev/nul>
+cron-all-users|for u in \$(cut -d: -f1 /etc/passwd); do echo \"# \$u\"; crontab -u \"\$u\" -l 2>/dev/null; done
 last-logins|last -n 20
 lastb-failures|lastb -n 20 || true
 kernel-mods|lsmod
