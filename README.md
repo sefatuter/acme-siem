@@ -1288,4 +1288,12 @@ root@acme-server:/var/ossec/active-response/bin# curl -sk -H "Authorization: Bea
 ```
 
 
+```
+curl -k -H "Authorization: Bearer $JWT_TOKEN" \
+     -H "Content-Type: application/json" \
+     -X PUT "https://10.128.0.10:55000/active-response?agents_list=001" \
+     -d '{"command":"!my_tool.sh","arguments":["hello","world"]}'
+```
+
+
 
