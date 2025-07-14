@@ -1271,6 +1271,8 @@ Passwords: ```sudo tar -O -xvf wazuh-install-files.tar wazuh-install-files/wazuh
 
 Get JWT: ```curl -u 'wazuh:B4B00XnxDmFmlo+DJtIla8DIh.mGI?XS' -k -X POST "https://10.128.0.10:55000/security/user/authenticate?raw=true"```
 
+Export on terminal environment: ```export $JWT_TOKEN="token_here"```
+
 Test: 
 ```
 root@acme-server:/var/ossec/active-response/bin# curl -sk -H "Authorization: Bearer $JWT_TOKEN"  "https://10.128.0.10:55000/?pretty=true"
