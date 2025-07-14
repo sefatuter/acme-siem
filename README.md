@@ -1267,6 +1267,10 @@ Active-response savings path: ```/var/ossec/active-response/tmp/${RULE_DIR}/curr
 
 ```nano /var/ossec/custom/bin/collect_rule100410.sh```
 
+Passwords: ```sudo tar -O -xvf wazuh-install-files.tar wazuh-install-files/wazuh-passwords.txt```
+
+Get JWT: ```curl -u 'wazuh:<PASSWORD>' -k -X POST "https://<INTERNAL_IP>:55000/security/user/authenticate?raw=true"```
+
 
 
 
