@@ -1271,6 +1271,21 @@ Passwords: ```sudo tar -O -xvf wazuh-install-files.tar wazuh-install-files/wazuh
 
 Get JWT: ```curl -u 'wazuh:B4B00XnxDmFmlo+DJtIla8DIh.mGI?XS' -k -X POST "https://10.128.0.10:55000/security/user/authenticate?raw=true"```
 
+Test: 
+```
+root@acme-server:/var/ossec/active-response/bin# curl -sk -H "Authorization: Bearer $JWT_TOKEN"  "https://10.128.0.10:55000/?pretty=true"
+{
+   "data": {
+      "title": "Wazuh API REST",
+      "api_version": "4.12.0",
+      "revision": "rc1",
+      "license_name": "GPL 2.0",
+      "license_url": "https://github.com/wazuh/wazuh/blob/v4.12.0/LICENSE",
+      "hostname": "acme-siem",
+      "timestamp": "2025-07-14T12:27:03Z"
+   },
+   "error": 0
+```
 
 
 
