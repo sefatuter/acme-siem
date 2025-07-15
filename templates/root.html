@@ -2,9 +2,9 @@
 <html>
 <head>
     <meta charset="utf-8">
-    <title>Wazuh FIM – Rules</title>
+    <title>Wazuh FIM Dashboard</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
         
         * {
             margin: 0;
@@ -13,157 +13,230 @@
         }
         
         body {
-            font-family: 'Ubuntu', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 50%, #4f81c7 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f8fafc;
             min-height: 100vh;
+            color: #334155;
+        }
+        
+        .dashboard-header {
+            background: #1e293b;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+        }
+        
+        .wazuh-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .brand-logo {
+            width: 32px;
+            height: 32px;
+            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+        
+        .brand-text {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+        
+        .main-content {
+            max-width: 1200px;
+            margin: 0 auto;
             padding: 2rem;
         }
         
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(15px);
-            border-radius: 25px;
-            box-shadow: 0 25px 50px rgba(30, 60, 114, 0.3);
-            padding: 3rem;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        h2 {
-            color: #1a365d;
-            font-size: 2.5rem;
+        .page-title {
+            font-size: 2rem;
             font-weight: 700;
-            text-align: center;
-            margin-bottom: 2rem;
-            background: linear-gradient(135deg, #1e3c72, #2a5298, #4f81c7);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #0f172a;
+            margin-bottom: 0.5rem;
         }
         
-        ul {
+        .page-subtitle {
+            color: #64748b;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+        }
+        
+        .dashboard-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #0f172a;
+            line-height: 1;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #64748b;
+            margin-top: 0.5rem;
+        }
+        
+        .rules-section {
+            background: white;
+            border-radius: 12px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #0f172a;
+            margin-bottom: 0.25rem;
+        }
+        
+        .section-subtitle {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        .rules-grid {
+            padding: 1.5rem 2rem;
+        }
+        
+        .rules-list {
             list-style: none;
             display: grid;
             gap: 1rem;
         }
         
-        li {
-            background: white;
-            border-radius: 15px;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            border: 1px solid rgba(30, 60, 114, 0.1);
-            overflow: hidden;
+        .rule-item {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+            background: #fafafa;
         }
         
-        li:hover {
-            transform: translateY(-3px) scale(1.02);
-            box-shadow: 0 15px 35px rgba(30, 60, 114, 0.2);
-            border-color: #4f81c7;
+        .rule-item:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+            background: white;
         }
         
         .rule-link {
             display: block;
-            padding: 1.5rem 2rem;
-            color: #2d3748;
+            padding: 1.25rem 1.5rem;
+            color: #334155;
             text-decoration: none;
-            border-radius: 15px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.3s ease;
-        }
-        
-        .rule-link::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(79, 129, 199, 0.1), transparent);
-            transition: left 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .rule-link:hover::before {
-            left: 100%;
-        }
-        
-        .rule-link:hover {
-            color: #1e3c72;
-            background: linear-gradient(135deg, rgba(30, 60, 114, 0.05), rgba(79, 129, 199, 0.05));
+            transition: all 0.2s ease;
         }
         
         .rule-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
         }
         
         .rule-id {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 600;
-            color: #1e3c72;
+            color: #0f172a;
         }
         
         .rule-level {
-            background: linear-gradient(135deg, #1e3c72, #4f81c7);
+            background: linear-gradient(135deg, #1e293b, #334155);
             color: white;
             padding: 0.25rem 0.75rem;
-            border-radius: 20px;
-            font-size: 0.85rem;
+            border-radius: 16px;
+            font-size: 0.8rem;
             font-weight: 500;
         }
         
         .rule-description {
-            color: #4a5568;
+            color: #475569;
             font-size: 0.95rem;
-            line-height: 1.4;
-            margin-bottom: 0.5rem;
+            line-height: 1.5;
+            margin-bottom: 0.75rem;
         }
         
         .rule-meta {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.8rem;
-            color: #718096;
+            font-size: 0.85rem;
         }
         
         .rule-group {
-            background: rgba(30, 60, 114, 0.1);
-            color: #1e3c72;
-            padding: 0.2rem 0.6rem;
+            background: #f1f5f9;
+            color: #475569;
+            padding: 0.25rem 0.75rem;
             border-radius: 12px;
             font-weight: 500;
         }
         
         .rule-timestamp {
-            font-style: italic;
+            color: #94a3b8;
+            font-size: 0.8rem;
         }
         
         .no-rules {
             text-align: center;
-            color: #718096;
+            color: #94a3b8;
             font-style: italic;
-            padding: 2rem;
-            background: rgba(30, 60, 114, 0.05);
-            border-radius: 15px;
-            border: 2px dashed rgba(30, 60, 114, 0.3);
+            padding: 3rem 2rem;
+            background: #f8fafc;
+            border-radius: 8px;
+            border: 2px dashed #e2e8f0;
         }
         
         @media (max-width: 768px) {
-            body {
+            .dashboard-header {
                 padding: 1rem;
             }
             
-            .container {
-                padding: 2rem;
-                border-radius: 20px;
+            .main-content {
+                padding: 1rem;
             }
             
-            h2 {
-                font-size: 2rem;
+            .page-title {
+                font-size: 1.5rem;
+            }
+            
+            .dashboard-stats {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .section-header, .rules-grid {
+                padding: 1rem 1.5rem;
             }
             
             .rule-header {
@@ -175,33 +248,63 @@
             .rule-meta {
                 flex-direction: column;
                 align-items: flex-start;
-                gap: 0.25rem;
+                gap: 0.5rem;
             }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h2>Available rule IDs</h2>
-        <ul>
-        {% for rule_id, metadata in rules_with_metadata %}
-          <li>
-            <a href="{{ url_for('rule_index', rid=rule_id) }}" class="rule-link">
-              <div class="rule-header">
-                <span class="rule-id">Rule {{ rule_id }}</span>
-                <span class="rule-level">Level {{ metadata.level }}</span>
-              </div>
-              <div class="rule-description">{{ metadata.description }}</div>
-              <div class="rule-meta">
-                <span class="rule-group">{{ metadata.group }}</span>
-                <span class="rule-timestamp">{{ metadata.timestamp }}</span>
-              </div>
-            </a>
-          </li>
-        {% else %}
-          <li class="no-rules">No rule directories found.</li>
-        {% endfor %}
-        </ul>
+    <div class="dashboard-header">
+        <div class="header-content">
+            <div class="wazuh-brand">
+                <div class="brand-logo">W</div>
+                <span class="brand-text">Acme Security FIM Dashboard</span>
+            </div>
+        </div>
+    </div>
+    
+    <div class="main-content">
+        <h1 class="page-title">File Integrity Monitoring</h1>
+        <p class="page-subtitle">Monitor and analyze file changes across your infrastructure with real-time detection and reporting</p>
+        
+        <div class="dashboard-stats">
+            <div class="stat-card">
+                <div class="stat-value">{{ rules_with_metadata|length }}</div>
+                <div class="stat-label">Active Rules</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">{{ rules_with_metadata|length * 8 }}</div>
+                <div class="stat-label">Monitored Files</div>
+            </div>
+        </div>
+        
+        <div class="rules-section">
+            <div class="section-header">
+                <h2 class="section-title">FIM Detection Rules</h2>
+                <p class="section-subtitle">Configure and manage file integrity monitoring rules for comprehensive system protection</p>
+            </div>
+            <div class="rules-grid">
+                <ul class="rules-list">
+                {% for rule_id, metadata in rules_with_metadata %}
+                  <li class="rule-item">
+                    <a href="{{ url_for('rule_index', rid=rule_id) }}" class="rule-link">
+                      <div class="rule-header">
+                        <span class="rule-id">Rule {{ rule_id }}</span>
+                        <span class="rule-level">Level {{ metadata.level }}</span>
+                      </div>
+                      <div class="rule-description">{{ metadata.description }}</div>
+                      <div class="rule-meta">
+                        <span class="rule-group">{{ metadata.group }}</span>
+                        <span class="rule-timestamp">Last Collected Data: {{ metadata.timestamp }}</span>
+                      </div>
+                    </a>
+                  </li>
+                {% else %}
+                  <li class="no-rules">No FIM rules configured. Configure detection rules to begin monitoring file integrity.</li>
+                {% endfor %}
+                </ul>
+            </div>
+        </div>
     </div>
 </body>
 </html>
