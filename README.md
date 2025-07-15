@@ -1298,4 +1298,20 @@ curl -k -H "Authorization: Bearer $JWT_TOKEN" \
 ```
 
 
+```nano /etc/systemd/system/fim-desk.service```
 
+```service
+[Unit]
+Description=Flask systemd for fim-desk
+After=network.target
+
+[Service]
+User=root
+WorkingDirectory=/opt/fim-desk
+Environment="PATH=/opt/fim-desk/venv/bin"
+ExecStart=/opt/fim-desk/venv/bin/python app.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
