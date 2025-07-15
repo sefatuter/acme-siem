@@ -243,11 +243,20 @@ def get_rule_metadata(rule_id):
     return result
 
 def get_file_metadata(filename):
-    """Return metadata for a file."""
-    return FILE_METADATA.get(filename, {
+    """Return metadata for a file.
+    First look for exact filename in FILE_METADATA.
+    If not found and filename has an extension, try without extension.
+    """
+    if filename in FILE_METADATA:
+        return FILE_METADATA[filename]
+    # try basename without extension
+    base = filename.rsplit('.', 1)[0]
+    if base in FILE_METADATA:
+        return FILE_METADATA[base]
+    return {
         "description": f"File analysis data: {filename}",
         "category": "unknown"
-    })
+    }
 
 def get_rules_with_metadata():
     """Return list of tuples (rule_id, metadata) for all available rules."""
