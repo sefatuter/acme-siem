@@ -4,14 +4,31 @@ Rule-aware diff dashboard for Wazuh FIM baseline vs. current copies.
 Start:  python3 app.py
 Browse: http://127.0.0.1:5081
 """
-from flask import Flask, render_template, abort, url_for
+from flask import Flask, render_template, abort, url_for, redirect, request, flash
 from pathlib import Path
-import difflib, os, re
+import difflib, os, re, requests, urllib3
 from datetime import datetime
+import google.generativeai as genai
+import markdown
 
 BASELINE_ROOT = Path("/var/ossec/baselines")
 CURRENT_ROOT  = Path("/var/ossec/active-response/tmp")
 PORT = 5081
+
+# Wazuh API Configuration
+WAZUH_API_HOST = "https://10.128.0.10:55000"
+WAZUH_AGENT_ID = "001"
+JWT_TOKEN = os.getenv("JWT_TOKEN", "eyJhbGciOiJFUzUxMiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJ3YXp1aCIsImF1ZCI6IldhenVoIEFQSSBSRVNUIiwibmJmIjoxNzUyNTg4MTgyLCJleHAiOjE3NjEyMjgxODIsInN1YiI6IndhenVoIiwicnVuX2FzIjpmYWxzZSwicmJhY19yb2xlcyI6WzFdLCJyYmFjX21vZGUiOiJ3aGl0ZSJ9.AdcbsVofBpEMm6uhMt2oMQgCQH-qBGJ4-wnINi5KLcMzIikNdO0MP1HBpfKUxGOt4My-PgOv7kywKNB0daO1iNUdAIUeKFVc9owLKx_GnzjfMIXBW-5WtpQ_iYNuJkeA40zcpy-zMNs8miyKkQH8YP9x9zzIGx4MNGkv0P0RKrUP4Unl")
+
+# Gemini API Configuration
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "AIzaSyAR3At1W2pOYHuzpYGtivSIEsBfzRKHgm8")
+genai.configure(api_key=GEMINI_API_KEY)
+
+# Disable SSL warnings for self-signed certificates
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
+# Critical PIDs that should not be killed
+PROTECTED_PIDS = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}
 
 # Rule metadata - descriptions and timestamps
 RULE_METADATA = {
@@ -113,6 +130,43 @@ FILE_METADATA = {
     "sudoers-file.txt": {
         "description": "Sudo privileges and access control configuration from /etc/sudoers",
         "category": "security"
+    },
+    
+    "sudo-last": {
+        "description": "Recent sudo command usage from system journal within last 30 minutes (journalctl -q -u sudo --since '-30 min' 2>/dev/null | tail)",
+        "category": "security"
+    },
+    "bash-history": {
+        "description": "Recent command history from root user's bash history (tail -n 40 /root/.bash_history 2>/dev/null)",
+        "category": "security"
+    },
+    "pid-summary-proc": {
+        "description": "Process summary information for specific PID including CPU, memory, and runtime details (ps -p $PID -o pid,ppid,user,%cpu,%mem,etime,stat,cmd)",
+        "category": "process"
+    },
+    "threads-cpu-proc": {
+        "description": "Thread-level CPU usage and information for specific PID (top -b -H -n 1 -p $PID | head -n 20)",
+        "category": "process"
+    },
+    "limits-proc": {
+        "description": "Process resource limits and constraints from /proc/PID/limits (cat /proc/$PID/limits)",
+        "category": "process"
+    },
+    "sched-proc": {
+        "description": "Process scheduling information and statistics from /proc/PID/sched (cat /proc/$PID/sched)",
+        "category": "process"
+    },
+    "hosts-file": {
+        "description": "System hostname resolution configuration from /etc/hosts (cat /etc/hosts)",
+        "category": "security"
+    },
+    "root-auth-keys": {
+        "description": "SSH authorized keys for root user authentication (cat /root/.ssh/authorized_keys 2>/dev/null || true)",
+        "category": "security"
+    },
+    "user-auth-keys": {
+        "description": "SSH authorized keys for all users in /home directories (for d in /home/*/; do cat \"$d/.ssh/authorized_keys\" 2>/dev/null; done)",
+        "category": "security"
     }
 }
 
@@ -135,6 +189,7 @@ CRITICAL_SYSTEM_FILES = {
 }
 
 app = Flask(__name__)
+app.secret_key = 'your-secret-key-for-flash-messages'
 
 # ── helpers ─────────────────────────────────────────────────────────────
 def rule_dirs():
@@ -312,6 +367,130 @@ def show_diff(rid, logical):
                                   table=html_diff(base, cur),
                                   rule_metadata=rule_metadata,
                                   file_metadata=file_metadata)
+
+@app.route("/kill_process/<pid>")
+def kill_process(pid):
+    # Validate PID input
+    try:
+        pid_int = int(pid)
+    except ValueError:
+        flash(f"Error: '{pid}' is not a valid number. Please enter a numeric PID.")
+        next_url = request.referrer or url_for("root")
+        return redirect(next_url)
+    
+    # Check if PID is in protected list
+    if pid_int in PROTECTED_PIDS:
+        flash(f"Error: PID {pid} is a critical system process and cannot be killed.")
+        next_url = request.referrer or url_for("root")
+        return redirect(next_url)
+    
+    print(f"[DEBUG] Killing process {pid}")
+    
+    try:
+        # Prepare Wazuh API request
+        headers = {
+            "Authorization": f"Bearer {JWT_TOKEN}",
+            "Content-Type": "application/json"
+        }
+        
+        data = {
+            "command": "!my_tool.sh",
+            "arguments": [str(pid)]
+        }
+        
+        url = f"{WAZUH_API_HOST}/active-response?agents_list={WAZUH_AGENT_ID}"
+        
+        # Make the API call
+        response = requests.put(url, headers=headers, json=data, verify=False, timeout=10)
+        
+        if response.status_code == 200:
+            flash(f"Process {pid} kill command executed successfully.")
+            print(f"[DEBUG] API Response: {response.json()}")
+        else:
+            flash(f"Error: Failed to execute kill command for PID {pid}. Status: {response.status_code}")
+            print(f"[DEBUG] API Error: {response.text}")
+            
+    except requests.exceptions.RequestException as e:
+        flash(f"Error: Network error while executing kill command for PID {pid}.")
+        print(f"[DEBUG] Network Error: {e}")
+    except Exception as e:
+        flash(f"Error: Unexpected error while executing kill command for PID {pid}.")
+        print(f"[DEBUG] Unexpected Error: {e}")
+
+    next_url = request.args.get("next")
+    if not next_url:
+        next_url = request.referrer or url_for("root")
+    return redirect(next_url)
+
+@app.route("/<rid>/generate_insights/<logical>")
+def generate_insights(rid, logical):
+    # Get the file paths
+    baseline_file = BASELINE_ROOT / rid / logical
+    current_file = CURRENT_ROOT / rid / f"current_{logical}"
+    
+    # Check if files exist
+    if not baseline_file.exists():
+        return redirect(url_for("show_diff", rid=rid, logical=logical))
+    
+    if not current_file.exists():
+        return redirect(url_for("show_diff", rid=rid, logical=logical))
+    
+    print(f"[INSIGHTS] Generating insights for {rid}/{logical}")
+    print(f"[INSIGHTS] Baseline file: {baseline_file}")
+    print(f"[INSIGHTS] Current file: {current_file}")
+    
+    try:
+        # Read baseline file
+        with baseline_file.open(encoding='utf-8', errors='ignore') as f:
+            baseline_content = f.read()
+        
+        # Read current file
+        with current_file.open(encoding='utf-8', errors='ignore') as f:
+            current_content = f.read()
+        
+        # Create prompt for Gemini
+        prompt = f"""Analyze the following two files and provide security insights about the differences:
+
+BASELINE FILE ({logical}):
+{baseline_content}
+
+CURRENT FILE (current_{logical}):
+{current_content}
+
+Please analyze the differences between these files and provide insights about:
+1. What changed between baseline and current
+2. Security implications of the changes
+3. Recommendations for action if needed
+
+Keep the analysis concise and focused on security aspects."""
+        
+        # Call Gemini API
+        try:
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            response = model.generate_content(prompt)
+            insights_markdown = response.text
+            insights_content = markdown.markdown(insights_markdown)
+            print(f"[INSIGHTS] Gemini response generated successfully")
+        except Exception as e:
+            print(f"[ERROR] Gemini API error: {e}")
+            insights_markdown = f"Error generating insights: {str(e)}\n\nPlease check your Gemini API key configuration."
+            insights_content = markdown.markdown(insights_markdown)
+        
+        # Get metadata for template rendering
+        rule_metadata = get_rule_metadata(rid)
+        file_metadata = get_file_metadata(logical)
+        
+        # Render template with insights
+        return render_template("diff.html",
+                             rid=rid, logical=logical,
+                             table=html_diff(baseline_file, current_file),
+                             rule_metadata=rule_metadata,
+                             file_metadata=file_metadata,
+                             insights_content=insights_content)
+        
+    except Exception as e:
+        print(f"[ERROR] Failed to read files: {e}")
+        return redirect(url_for("show_diff", rid=rid, logical=logical))
 
 # ── main ────────────────────────────────────────────────────────────────
 if __name__ == "__main__":
