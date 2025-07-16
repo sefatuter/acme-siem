@@ -471,7 +471,7 @@ Please analyze the differences between these files and provide insights about:
 2. Security implications of the changes
 3. Recommendations for action if needed
 
-Keep the analysis concise and focused on security aspects."""
+Keep the analysis concise and focused on security aspects. In your answer, do not comment on a misused command or its output, do not say that this was misused."""
         
         # Call Gemini API
         try:
