@@ -24,12 +24,12 @@
 <!-- done -->  
 <rule id="100432" level="12">
   <if_sid>550</if_sid>
-  <field name="file">/etc/passwd|/etc/shadow|/etc/sudoers</field>
+  <field name="file">/etc/passwd|/etc/shadow|/etc/sudoers|/etc/hosts|/root/.ssh/authorized_keys</field>
   <description>Critical system file modified: $(perm), $(uname), $(hard_links), $(sha1)</description>
   <group>file_integrity,system_config</group>
 </rule>
 
-
+<!-- done -->
 <rule id="100150" level="10">
   <if_sid>550</if_sid>    
   <field name="file" type="pcre2">^/tmp/.*</field>
@@ -38,7 +38,7 @@
   <description>FIM: Executable file detected in temporary directory: $(file)</description>
 </rule>
 
-
+<!-- done -->
 <rule id="100409" level="3">
   <location>command_cpu-monitor</location>
   <description>CPU monitoring command output.</description>
