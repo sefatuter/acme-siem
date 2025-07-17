@@ -1,5 +1,6 @@
 <!-- Modify it at your will. -->
 
+<!-- done -->
 <group name="commands">
   <rule id="100001" level="0">
     <location>command_ps-list</location>
@@ -9,7 +10,8 @@
   <rule id="100002" level="10">
     <if_sid>100001</if_sid>
     <if_group>process_monitor</if_group>
-    <regex>bash -i</regex>
+    <!-- <regex>bash -i</regex> -->
+    <match>eval(hex2bin</match>
     <description>Reverse shell detected.</description>
     <group>process_monitor,attacks</group>
   </rule>
