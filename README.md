@@ -1321,3 +1321,12 @@ sudo systemctl daemon-reload
 sudo systemctl enable --now fim-desk
 sudo systemctl status fim-desk
 ```
+
+
+After suspend machine:
+
+1- ssh config external ip change
+2- agent ossec.conf manager's external ip change
+3- cloudflare restart ```systemctl restart cloudflared-tunnel```
+4- change slack interactivity https://api.slack.com/apps/A09380M4MNF/interactive-messages? ```journalctl -u cloudflared-tunnel -n 20 --no-pager | grep -Eo 'https://[a-z0-9-]+\.trycloudflare\.com'```
+
