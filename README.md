@@ -290,7 +290,7 @@ The rule will trigger if the log message has previously been decoded by the sysl
 ```xml
 <integration>
   <name>slack</name>
-  <hook_url>https://hooks.slack.com/services/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</hook_url>
+  <hook_url>https://hooks.slack.com/services/...</hook_url>
   <alert_format>json</alert_format>
   <level>12</level>
 </integration>
