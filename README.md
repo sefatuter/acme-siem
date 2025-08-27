@@ -1,6 +1,15 @@
 # acme-siem
 Security information & event management node – receives logs, stores them, runs correlation rules, raises alerts, sends Slack webhooks, shows dashboards.
 
+
+## Demo:
+
+https://github.com/user-attachments/assets/43c955a6-9c6b-4233-860b-f9b35af8c636
+
+## Presentation:
+
+[secops-presentation.pptx](https://github.com/user-attachments/files/22014312/secops-presentation.pptx)
+
 ## Create GCP VM Instance
 
 - VM instance name: acme-siem
